@@ -1,0 +1,4 @@
+gym==0.9.1
+gym[atari]
+docopt==0.6.2
+numpy==1.12.1
