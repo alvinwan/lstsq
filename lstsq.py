@@ -48,7 +48,33 @@ def get_data(path: str, one_hotted: bool=False) -> Tuple[np.array, np.array]:
 def one_hot(Y: np.array) -> np.array:
     """One hot the provided list of classes."""
     num_classes = len(np.unique(Y))
-    return np.eye(num_classes)[Y.astype(int)]
+    return np.eye(num_classes)[Y.astype(int)].reshape((Y.shape[0], num_classes))
+
+
+def phi_downsample(
+        X: np.array,
+        k: float,
+        img_w: int,
+        img_h: int,
+        img_c: int) -> np.array:
+    """Downsample a set of images."""
+    new_w = np.round(img_w * k)
+    new_h = np.round(img_h * k)
+    newX = np.zeros((X.shape[0], int(new_w * new_h * img_c)))
+    for i in range(X.shape[0]):
+        image = X[i].reshape((img_w, img_h, img_c)).astype(np.uint8)
+        newX[i] = cv2.resize(image, (0, 0), fx=k, fy=k).reshape((1, -1))
+    return newX
+
+
+def phi_pca(
+        X: np.array,
+        k: float,
+        img_w: int,
+        img_h: int,
+        img_c: int) -> np.array:
+    """Run PCA to find projection into subspace."""
+    return X
 
 
 def main():
@@ -57,7 +83,7 @@ def main():
 
     root = arguments['--root']
     name = arguments['--name']
-    featurize = arguments['--featurize']
+    featurize = arguments['--featurize'] or 'downsample' # TODO(Alvin) default?
     raw_path = os.path.join(root, name, '*.npz')
     pca_path = os.path.join(root, name + '-pca', '*.npz')
     downsample_path = os.path.join(root, name + '-downsample', '*.npz')
@@ -98,64 +124,66 @@ def main():
 
         ks = map(float, arguments['<k>'])
         dirname = os.path.dirname(downsample_path)
+        os.makedirs(dirname, exist_ok=True)
 
-        new_w = np.round(img_w * k)
-        new_h = np.round(img_h * k)
         for k in ks:
-            newX = np.zeros((X.shape[0], int(new_w * new_h * img_c)))
-            for i in range(X.shape[0]):
-                image = X[i].reshape((img_w, img_h, img_c)).astype(np.uint8)
-                newX[i] = cv2.resize(image, (0, 0), fx=k, fy=k).reshape((1, -1))
+            newX = phi_downsample(X, k, img_w, img_h, img_c)
             data = np.hstack((newX, Y, placeholder))
-            np.savez_compressed(os.path.join(dirname, k), data)
+            np.savez_compressed(os.path.join(dirname, str(k)), data)
 
     if ols_mode:
         dirname = os.path.dirname(ols_path)
+        os.makedirs(dirname, exist_ok=True)
         ks, accuracies = [], []
 
-        source_path = os.path.join(root, featurize, '*.npz')
+        source_path = os.path.join(root, '%s-%s' % (name, featurize), '*.npz')
         for path in glob.iglob(source_path):
-            k = float('.'.join(path.split('.')[:-1]))
+            k = float('.'.join(os.path.basename(path).split('.')[:-1]))
             X, Y = get_data(path=path)
-            w = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(one_hot(Y))
+            w = np.linalg.pinv(X.T.dot(X)).dot(X.T).dot(one_hot(Y))
 
-            guesses = np.argmax(projX.dot(w), axis=1)
-            accuracy = np.sum(guesses == Y) / float(Y.shape[0])
-            print(' * Accuracy for %d: %f' % (k, accuracy))
+            guesses = np.argmax(X.dot(w), axis=1)
+            accuracy = np.sum(guesses == np.ravel(Y)) / float(Y.shape[0])
+            print(' * Accuracy for %f: %f' % (k, accuracy))
 
-            np.savez_compressed(w, os.path.join(dirname, k))
             ks.append(k)
             accuracies.append(accuracy)
+            np.savez_compressed(os.path.join(dirname, str(k)), w)
 
         with open(os.path.join(dirname, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
             for k, accuracy in zip(ks, accuracies):
-                writer.write([k, accuracy])
+                writer.writerow([k, accuracy])
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 10
         dirname = os.path.dirname(play_path)
+        os.makedirs(dirname, exist_ok=True)
 
         random.seed(0)
         np.random.seed(0)
+
+        if featurize == 'downsample':
+            phi = phi_downsample
+        elif featurize == 'pca':
+            phi = phi_pca
+        else:
+            raise UserWarning('Unknown featurization:', featurize)
 
         ks, total_rewards = [], []
         for path in glob.iglob(ols_path):
             with np.load(path) as datum:
                 w = datum['arr_0']
-            k = float('.'.join(path.split('.')[:-1]))
+            k = float('.'.join(os.path.basename(path).split('.')[:-1]))
             episode_rewards = []
+            observation = env.reset()
             for _ in range(int(n_episodes)):
                 rewards = 0
                 while True:
                     if observation is not None:
-                        if featurize == 'downsample':
-                            # observation = rescale(featurize, k)
-                            obs = observation.astype(np.uint8)
-                            featurized = cv2.resize(obs, (0, 0), fx=k, fy=k)
-                            action = np.round(featurized.dot(w))
-                        else:
-                            raise UserWarning('Unknown featurization')
+                        obs = observation.reshape((1, *observation.shape))
+                        featurized = phi(obs, k, img_w, img_h, img_c)
+                        action = np.argmax(np.round(featurized.dot(w)))
                     else:
                         action = 0
                     observation, reward, done, info = env.step(action)
@@ -171,12 +199,7 @@ def main():
         with open(os.path.join(dirname, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
             for k, reward in zip(ks, total_rewards):
-                writer.write([k, reward])
-
-    # Human play for SpaceInvadersNoFrameskip-v4
-    # For 4 possible actions
-    # Least squares + PCA reduction to 25 dims: 51.5%
-    # Least squares + PCA reduction to 100 dims: 59.5%
+                writer.writerow([k, reward])
 
 if __name__ == '__main__':
     main()
