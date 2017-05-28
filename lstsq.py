@@ -11,6 +11,7 @@ Options:
     --name=<name>   Name of trial - looks for <root>/<name>/*.npz [default: raw]
     --root=<root>   Root of data path [default: ./data/]
     --featurize=<f> Name of featurization technique [default: downsample]
+    --ks=<ks>       Comma-separated string of ks to use
 """
 
 import docopt
@@ -60,7 +61,8 @@ def phi_downsample(
     """Downsample a set of images."""
     new_w = np.round(img_w * k)
     new_h = np.round(img_h * k)
-    newX = np.zeros((X.shape[0], int(new_w * new_h * img_c)))
+    new_d = int(new_w * new_h * img_c)
+    newX = np.zeros((X.shape[0], new_d))
     for i in range(X.shape[0]):
         image = X[i].reshape((img_w, img_h, img_c)).astype(np.uint8)
         newX[i] = cv2.resize(image, (0, 0), fx=k, fy=k).reshape((1, -1))
@@ -75,6 +77,19 @@ def phi_pca(
         img_c: int) -> np.array:
     """Run PCA to find projection into subspace."""
     return X
+
+
+def phi_random(
+        X: np.array,
+        k: float,
+        img_w: int,
+        img_h: int,
+        img_c: int) -> np.array:
+    """Run a random agent by generating a random featurization."""
+    new_w = np.round(img_w * k)
+    new_h = np.round(img_h * k)
+    new_d = int(new_w * new_h * img_c)
+    return np.random.random((X.shape[0], new_d))
 
 
 def main():
@@ -167,25 +182,25 @@ def main():
             phi = phi_downsample
         elif featurize == 'pca':
             phi = phi_pca
+        elif featurize == 'random':
+            phi = phi_random
         else:
             raise UserWarning('Unknown featurization:', featurize)
 
-        ks, total_rewards = [], []
+        ks, average_rewards, total_rewards = [], [], []
         for path in glob.iglob(ols_path):
             with np.load(path) as datum:
                 w = datum['arr_0']
             k = float('.'.join(os.path.basename(path).split('.')[:-1]))
             episode_rewards = []
-            observation = env.reset()
+            total_rewards.append((k, episode_rewards))
             for _ in range(int(n_episodes)):
+                observation = env.reset()
                 rewards = 0
                 while True:
-                    if observation is not None:
-                        obs = observation.reshape((1, *observation.shape))
-                        featurized = phi(obs, k, img_w, img_h, img_c)
-                        action = np.argmax(np.round(featurized.dot(w)))
-                    else:
-                        action = 0
+                    obs = observation.reshape((1, *observation.shape))
+                    featurized = phi(obs, k, img_w, img_h, img_c)
+                    action = np.argmax(np.round(featurized.dot(w)))
                     observation, reward, done, info = env.step(action)
                     rewards += reward
                     if done:
@@ -194,12 +209,18 @@ def main():
             average_reward = sum(episode_rewards) / float(len(episode_rewards))
             print(' * (%f) Average Reward: %f' % (k, average_reward))
             ks.append(k)
-            total_rewards.append(average_reward)
+            average_rewards.append(average_reward)
+
+        for k, rewards in total_rewards:
+            path = os.path.join(dirname, '%s-%f.txt' % (featurize, k))
+            with open(path, 'w') as f:
+                f.write(','.join(map(str, rewards)))
 
         with open(os.path.join(dirname, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
-            for k, reward in zip(ks, total_rewards):
+            for k, reward in zip(ks, average_rewards):
                 writer.writerow([k, reward])
+
 
 if __name__ == '__main__':
     main()
