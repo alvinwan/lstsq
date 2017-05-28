@@ -9,7 +9,7 @@ Usage:
 
 Options:
     --name=<name>   Name of trial - looks for <root>/<name>/*.npz [default: raw]
-    --root=<root>   Root of data path [./data/]
+    --root=<root>   Root of data path [default: ./data/]
     --featurize=<f> Name of featurization technique [default: downsample]
 """
 
@@ -21,6 +21,7 @@ import glob
 import csv
 import gym
 import random
+import cv2
 
 from skimage.transform import rescale
 from scipy.sparse.linalg import svds
@@ -36,7 +37,7 @@ def get_data(path: str, one_hotted: bool=False) -> Tuple[np.array, np.array]:
         else:
             with np.load(fpath) as datum:
                 A = datum['arr_0']
-        x, y = A[:,:-2], A[:,-2]
+        x, y = A[:, :-2], A[:, -2].reshape((-1, 1))
         X = x if X is None else np.vstack((X, x))
         Y = y if Y is None else np.vstack((Y, y))
     if one_hotted:
@@ -65,8 +66,13 @@ def main():
 
     all_mode = arguments['all']
     pca_mode = arguments['pca']
+    downsample_mode = arguments['downsample']
     ols_mode = arguments['ols']
     play_mode = arguments['play']
+
+    env_id = arguments['--env_id'] or 'SpaceInvadersNoFrameskip-v4'
+    env = gym.make(env_id)
+    img_h, img_w, img_c = env.observation_space.shape
 
     if pca_mode:
         X, Y = get_data(path=raw_path)
@@ -75,11 +81,12 @@ def main():
         ks = map(int, arguments['<k>'])
         U, s, VT = svds(X, k=max(ks))
         dirname = os.path.dirname(pca_path)
+        placeholder = np.zeros((n, 1))
 
         for k in ks:
             projX = U.dot(np.diag(s[:k]))
-            data = np.hstack((projX, Y, np.zeros(n)))
-            np.savez_compressed(data, os.path.join(dirname, k))
+            data = np.hstack((projX, Y, placeholder))
+            np.savez_compressed(os.path.join(dirname, k), data)
 
         np.savez_compressed(U, os.path.join(dirname, 'U'))
         np.savez_compressed(s, os.path.join(dirname, 's'))
@@ -87,13 +94,20 @@ def main():
     if downsample_mode:
         X, Y = get_data(path=raw_path)
         n = X.shape[0]
+        placeholder = np.zeros((n, 1))
 
         ks = map(float, arguments['<k>'])
         dirname = os.path.dirname(downsample_path)
 
+        new_w = np.round(img_w * k)
+        new_h = np.round(img_h * k)
         for k in ks:
-            data = np.hstack((rescale(X, k), Y, np.zeros(n)))
-            np.savez_compressed(data, os.path.join(dirname, k))
+            newX = np.zeros((X.shape[0], int(new_w * new_h * img_c)))
+            for i in range(X.shape[0]):
+                image = X[i].reshape((img_w, img_h, img_c)).astype(np.uint8)
+                newX[i] = cv2.resize(image, (0, 0), fx=k, fy=k).reshape((1, -1))
+            data = np.hstack((newX, Y, placeholder))
+            np.savez_compressed(os.path.join(dirname, k), data)
 
     if ols_mode:
         dirname = os.path.dirname(ols_path)
@@ -106,7 +120,7 @@ def main():
             w = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(one_hot(Y))
 
             guesses = np.argmax(projX.dot(w), axis=1)
-            accuracy = np.sum(guesses == Y_raw) / float(Y.shape[0])
+            accuracy = np.sum(guesses == Y) / float(Y.shape[0])
             print(' * Accuracy for %d: %f' % (k, accuracy))
 
             np.savez_compressed(w, os.path.join(dirname, k))
@@ -119,10 +133,9 @@ def main():
                 writer.write([k, accuracy])
 
     if play_mode:
-        env_id = arguments['--env_id'] or 'SpaceInvadersNoFrameskip-v4'
         n_episodes = arguments['--n_episodes'] or 10
+        dirname = os.path.dirname(play_path)
 
-        env = gym.make(env_id)
         random.seed(0)
         np.random.seed(0)
 
@@ -131,14 +144,20 @@ def main():
             with np.load(path) as datum:
                 w = datum['arr_0']
             k = float('.'.join(path.split('.')[:-1]))
-            observation = np.zeros(U.shape[0])
             episode_rewards = []
             for _ in range(int(n_episodes)):
                 rewards = 0
                 while True:
-                    if featurize == 'downsample':
-                        observation = rescale(featurize, k)
-                        action = observation.dot(w)
+                    if observation is not None:
+                        if featurize == 'downsample':
+                            # observation = rescale(featurize, k)
+                            obs = observation.astype(np.uint8)
+                            featurized = cv2.resize(obs, (0, 0), fx=k, fy=k)
+                            action = np.round(featurized.dot(w))
+                        else:
+                            raise UserWarning('Unknown featurization')
+                    else:
+                        action = 0
                     observation, reward, done, info = env.step(action)
                     rewards += reward
                     if done:
