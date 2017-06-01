@@ -23,7 +23,9 @@ import csv
 import gym
 import random
 import cv2
+import pickle
 
+from sklearn.decomposition import PCA
 from skimage.transform import rescale
 from scipy.sparse.linalg import svds
 from typing import Tuple
@@ -72,19 +74,14 @@ def phi_downsample(
 def phi_pca(
         X: np.array,
         k: float,
-        img_w: int,
-        img_h: int,
-        img_c: int) -> np.array:
+        model: PCA) -> np.array:
     """Run PCA to find projection into subspace."""
-    return X
+    return model[int(k)].transform(X.reshape((1, -1)))
 
 
 def phi_random(
         X: np.array,
-        k: float,
-        img_w: int,
-        img_h: int,
-        img_c: int) -> np.array:
+        k: float) -> np.array:
     """Run a random agent by generating a random featurization."""
     new_w = np.round(img_w * k)
     new_h = np.round(img_h * k)
@@ -99,6 +96,7 @@ def main():
     root = arguments['--root']
     name = arguments['--name']
     featurize = arguments['--featurize'] or 'downsample' # TODO(Alvin) default?
+
     raw_path = os.path.join(root, name, '*.npz')
     pca_path = os.path.join(root, name + '-pca', '*.npz')
     downsample_path = os.path.join(root, name + '-downsample', '*.npz')
@@ -120,17 +118,20 @@ def main():
         n = X.shape[0]
 
         ks = map(int, arguments['<k>'])
-        U, s, VT = svds(X, k=max(ks))
         dirname = os.path.dirname(pca_path)
+        os.makedirs(dirname, exist_ok=True)
         placeholder = np.zeros((n, 1))
 
         for k in ks:
-            projX = U.dot(np.diag(s[:k]))
+            model = PCA(n_components=k)
+            model.fit(X)
+            projX = model.transform(X)
             data = np.hstack((projX, Y, placeholder))
-            np.savez_compressed(os.path.join(dirname, k), data)
-
-        np.savez_compressed(U, os.path.join(dirname, 'U'))
-        np.savez_compressed(s, os.path.join(dirname, 's'))
+            np.savez_compressed(os.path.join(dirname, str(k)), data)
+            filename = os.path.join(dirname, '%d-model.pkl' % k)
+            with open(filename, 'wb') as f:
+                pickle.dump(model, f)
+            print(' * Wrote %d model to %s' % (k, filename))
 
     if downsample_mode:
         X, Y = get_data(path=raw_path)
@@ -148,6 +149,7 @@ def main():
 
     if ols_mode:
         dirname = os.path.dirname(ols_path)
+        os.makedirs(os.path.join(dirname, featurize), exist_ok=True)
         os.makedirs(dirname, exist_ok=True)
         ks, accuracies = [], []
 
@@ -163,7 +165,7 @@ def main():
 
             ks.append(k)
             accuracies.append(accuracy)
-            np.savez_compressed(os.path.join(dirname, str(k)), w)
+            np.savez_compressed(os.path.join(dirname, featurize, str(k)), w)
 
         with open(os.path.join(dirname, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
@@ -172,6 +174,7 @@ def main():
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 10
+        ols_dirname = os.path.dirname(ols_path)
         dirname = os.path.dirname(play_path)
         os.makedirs(dirname, exist_ok=True)
 
@@ -180,27 +183,39 @@ def main():
 
         if featurize == 'downsample':
             phi = phi_downsample
+            data = {'img_w': img_w, 'img_h': img_h, 'img_c': img_c}
         elif featurize == 'pca':
             phi = phi_pca
+            data = {'model': {}}
         elif featurize == 'random':
             phi = phi_random
+            data = {}
         else:
             raise UserWarning('Unknown featurization:', featurize)
 
+        source_path = os.path.join(ols_dirname, featurize, '*.npz')
         ks, average_rewards, total_rewards = [], [], []
-        for path in glob.iglob(ols_path):
+        for path in glob.iglob(source_path):
             with np.load(path) as datum:
                 w = datum['arr_0']
             k = float('.'.join(os.path.basename(path).split('.')[:-1]))
             episode_rewards = []
             total_rewards.append((k, episode_rewards))
+
+            if featurize == 'pca':
+                k = int(k)
+                pca_dirname = os.path.dirname(pca_path)
+                filename = os.path.join(pca_dirname, '%d-model.pkl' % k)
+                with open(filename, 'rb') as f:
+                    data['model'][k] = pickle.load(f)
+
             for _ in range(int(n_episodes)):
                 observation = env.reset()
                 rewards = 0
                 while True:
                     obs = observation.reshape((1, *observation.shape))
-                    featurized = phi(obs, k, img_w, img_h, img_c)
-                    action = np.argmax(np.round(featurized.dot(w)))
+                    featurized = phi(obs, k, **data)
+                    action = np.argmax(featurized.dot(w))
                     observation, reward, done, info = env.step(action)
                     rewards += reward
                     if done:
