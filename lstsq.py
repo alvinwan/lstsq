@@ -96,7 +96,7 @@ def main():
         solver.solve()
 
     if play_mode:
-        n_episodes = arguments['--n_episodes'] or 10
+        n_episodes = arguments['--n_episodes'] or 1
 
         source_path = os.path.join(solver.solve_dir, '*.npz')
         ks, average_rewards, total_rewards = [], [], []
