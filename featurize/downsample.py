@@ -1,6 +1,8 @@
 from .interface import FeaturizeInterface
 from typing import List
 
+import numpy as np
+
 
 class Downsample(FeaturizeInterface):
     """Downsample the raw pixels."""

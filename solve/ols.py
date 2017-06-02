@@ -2,6 +2,8 @@ from .interface import SolveInterface
 from featurize.interface import FeaturizeInterface
 from utils import one_hot
 
+import numpy as np
+
 
 class OLS(SolveInterface):
 
@@ -16,7 +18,9 @@ class OLS(SolveInterface):
         return np.linalg.pinv(X.T.dot(X)).dot(X.T).dot(one_hot(Y))
 
     def save_model(self, model, param: str):
-        np.savez_compressed(os.path.join(self.solve_dir, self.featurize.name, param), w)
+        np.savez_compressed(os.path.join(self.solve_dir, self.featurize.technique, param), w)
 
     def load_model(self, param: str) -> np.array:
-        with open(os.path.join(self.solve_dir, ))
+        with open(os.path.join(self.solve_dir, self.featurize.technique, param)) as data:
+            model = data['arr_0']
+        return model

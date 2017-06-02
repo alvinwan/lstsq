@@ -1,5 +1,5 @@
 from typing import List
-from featurize import FeaturizeInterface
+from featurize.interface import FeaturizeInterface
 
 import numpy as np
 

@@ -1,7 +1,9 @@
 import os.path
 import os
+import numpy as np
 
 from typing import Tuple
+from typing import List
 
 
 class FeaturizeInterface:
@@ -10,7 +12,7 @@ class FeaturizeInterface:
     fmt_encoded = '%s-enc/%s/*.npz'
     fmt_model = '%s-model/%s/*.npz'
 
-    def __init__(name: str, technique: str, root: str, env):
+    def __init__(self, name: str, technique: str, root: str, env):
         """Initialize the featurization path.
 
         :param name: Name of scope for trial
@@ -51,7 +53,7 @@ class FeaturizeInterface:
         for param in params:
             model = self.train(X, Y, param)
             self.save_encoded(self.phi(X, model), Y, param)
-            self.save_model(model)
+            self.save_model(model, param)
 
     def train(self, X: np.array, Y: np.array, param: str):
         """Train a model for the provided task, and return the model."""
