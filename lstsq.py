@@ -2,8 +2,8 @@
 
 Usage:
     lstsq.py all [options]
-    lstsq.py pca <k> <k>... [options]
-    lstsq.py downsample <k> <k>... [options]
+    lstsq.py pca <param> <param>... [options]
+    lstsq.py downsample <param> <param>... [options]
     lstsq.py ols [options]
     lstsq.py play [--env_id=<id>] [--n_episodes=<n>] [options]
 
@@ -54,31 +54,6 @@ def one_hot(Y: np.array) -> np.array:
     return np.eye(num_classes)[Y.astype(int)].reshape((Y.shape[0], num_classes))
 
 
-def phi_downsample(
-        X: np.array,
-        k: float,
-        img_w: int,
-        img_h: int,
-        img_c: int) -> np.array:
-    """Downsample a set of images."""
-    new_w = np.round(img_w * k)
-    new_h = np.round(img_h * k)
-    new_d = int(new_w * new_h * img_c)
-    newX = np.zeros((X.shape[0], new_d))
-    for i in range(X.shape[0]):
-        image = X[i].reshape((img_w, img_h, img_c)).astype(np.uint8)
-        newX[i] = cv2.resize(image, (0, 0), fx=k, fy=k).reshape((1, -1))
-    return newX
-
-
-def phi_pca(
-        X: np.array,
-        k: float,
-        model: PCA) -> np.array:
-    """Run PCA to find projection into subspace."""
-    return model[int(k)].transform(X.reshape((1, -1)))
-
-
 def phi_random(
         X: np.array,
         k: float) -> np.array:
@@ -113,39 +88,19 @@ def main():
     env = gym.make(env_id)
     img_h, img_w, img_c = env.observation_space.shape
 
+    params = arguments['<param>']
+
     if pca_mode:
         X, Y = get_data(path=raw_path)
-        n = X.shape[0]
 
-        ks = map(int, arguments['<k>'])
-        dirname = os.path.dirname(pca_path)
-        os.makedirs(dirname, exist_ok=True)
-        placeholder = np.zeros((n, 1))
-
-        for k in ks:
-            model = PCA(n_components=k)
-            model.fit(X)
-            projX = model.transform(X)
-            data = np.hstack((projX, Y, placeholder))
-            np.savez_compressed(os.path.join(dirname, str(k)), data)
-            filename = os.path.join(dirname, '%d-model.pkl' % k)
-            with open(filename, 'wb') as f:
-                pickle.dump(model, f)
-            print(' * Wrote %d model to %s' % (k, filename))
+        featurizer = PCA(name, root, env)
+        featurizer.encode(X, Y, params)
 
     if downsample_mode:
         X, Y = get_data(path=raw_path)
-        n = X.shape[0]
-        placeholder = np.zeros((n, 1))
 
-        ks = map(float, arguments['<k>'])
-        dirname = os.path.dirname(downsample_path)
-        os.makedirs(dirname, exist_ok=True)
-
-        for k in ks:
-            newX = phi_downsample(X, k, img_w, img_h, img_c)
-            data = np.hstack((newX, Y, placeholder))
-            np.savez_compressed(os.path.join(dirname, str(k)), data)
+        featurizer = Downsample(name, root, env)
+        featurizer.encode(X, Y, params)
 
     if ols_mode:
         dirname = os.path.dirname(ols_path)

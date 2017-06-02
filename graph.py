@@ -21,6 +21,7 @@ def plot_results(path: str, label: str) -> None:
 
 plot_results('./data/raw-play/downsample-0.100000.txt', 'human, downsample')
 plot_results('./data/raw-play/random-0.100000.txt', 'human, random')
+plot_results('./data/raw-play/pca-10.000000.txt', 'human, pca')
 
 plt.legend()
 plt.savefig('./data/raw-play/averages.png')
