@@ -1,5 +1,6 @@
 import os.path
 import os
+import pickle
 import numpy as np
 
 from typing import Tuple
@@ -59,25 +60,29 @@ class FeaturizeInterface:
         """Train a model for the provided task, and return the model."""
         raise NotImplementedError
 
-    def load_model(self, env):
+    def load_model(self, param: str):
         """Load model from model dir/. Updates self."""
-        raise NotImplementedError()
+        filename = os.path.join(self.encoded_dir, '%s-model.pkl' % param)
+        with open(filename, 'rb') as f:
+            model = pickle.load(f)
+        return model
 
-    def save_model(self, env):
+    def save_model(self, model, param: str) -> np.array:
         """Save model to model dir."""
-        raise NotImplementedError()
-
-    def load_encoded(self, params: List[str]) -> Tuple[np.array, np.array]:
-        """Load an encoded dataset with provided hyperparameters.
-
-        :return: (X, Y) where X contains encoded states and Y is a column vector
-        of action indices.
-        """
-        raise NotImplementedError()
+        filename = os.path.join(self.encoded_dir, '%s-model.pkl' % param)
+        with open(filename, 'wb') as f:
+            pickle.dump(model, f)
+        print(' * Wrote %s model to %s' % (param, filename))
 
     def save_encoded(self, X: np.array, Y: np.array, param: str):
         """Save an encoded dataset with provided hyperparameters."""
-        raise NotImplementedError()
+        n = X.shape[0]
+        placeholder = np.zeros((n, 1))
+
+        data = np.hstack((X, Y, placeholder))
+        encoded_path = os.path.join(self.encoded_dir, param)
+        np.savez_compressed(encoded_path, data)
+        print(' * Saved model to %s' % encoded_path)
 
     def phi(self, X: np.array, model) -> np.array:
         """Featurize the provided set of sample. Returns 1xd row vector."""

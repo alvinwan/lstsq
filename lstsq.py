@@ -116,6 +116,8 @@ def main():
             print(' * (%s) Average Reward: %f' % (param, average_reward))
             ks.append(param)
             average_rewards.append(average_reward)
+        if not ks:
+            raise UserWarning('No solved models found. Did you forget to run `solve`?')
 
         for k, rewards in total_rewards:
             path = os.path.join(solver.solve_dir, '%s-%f.txt' % (

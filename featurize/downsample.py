@@ -35,15 +35,3 @@ class Downsample(FeaturizeInterface):
 
     def train(self, X: np.array, _, k: str) -> float:
         return float(k)
-
-    def save_encoded(self, X: np.array, Y: np.array, param: str):
-        n = X.shape[0]
-        placeholder = np.zeros((n, 1))
-
-        data = np.hstack((X, Y, placeholder))
-        encoded_path = os.path.join(self.encoded_dir, param)
-        np.savez_compressed(encoded_path, data)
-        print(' * Saved model to %s' % encoded_path)
-
-    def load_encoded(self, params: List[str]):
-        pass

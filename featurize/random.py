@@ -1,8 +1,5 @@
 from .interface import FeaturizeInterface
-from typing import List
 
-import os.path
-import pickle
 import numpy as np
 
 
@@ -27,6 +24,3 @@ class Random(FeaturizeInterface):
 
     def save_encoded(self, X: np.ndarray, Y: np.array, param: str):
         raise UserWarning('Why are you saving random encodings? Just `play` with the random agent.')
-
-    def load_encoded(self):
-        pass
