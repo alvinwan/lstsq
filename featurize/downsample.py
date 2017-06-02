@@ -5,14 +5,15 @@ from typing import List
 class Downsample(FeaturizeInterface):
     """Downsample the raw pixels."""
 
-    def __init__(self, name: str, root: str):
-        super(Downsample, self).__init__(name, 'downsample', root)
-
-    def load_model(self, env):
+    def __init__(self, name: str, root: str, env):
+        super(Downsample, self).__init__(name, 'downsample', root, env)
         self.image_shape = env.observation_space.shape
         self.img_w, self.img_h, self.img_c = self.image_shape
 
-    def save_model(self, env):
+    def load_model(self):
+        pass
+
+    def save_model(self, model):
         pass
 
     def phi(self, X: np.ndarray, k: float) -> np.array:

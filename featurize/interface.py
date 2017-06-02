@@ -8,8 +8,7 @@ class FeaturizeInterface:
     """Interface for a featurization method"""
 
     fmt_encoded = '%s-enc/%s/*.npz'
-    fmt_model = '%s-ols/%s/*.npz'
-    fmt_play = '%s-play/%s/*.npz'
+    fmt_model = '%s-model/%s/*.npz'
 
     def __init__(name: str, technique: str, root: str, env):
         """Initialize the featurization path.
@@ -22,10 +21,10 @@ class FeaturizeInterface:
         self.name = name
         self.root = root
         self.technique = technique
+        self.env = env
 
         os.makedirs(self.encoded_dir, exist_ok=True)
         os.makedirs(self.model_dir, exist_ok=True)
-        os.makedirs(self.play_dir, exist_ok=True)
 
     @property
     def __base_path(self) -> str:
@@ -46,14 +45,6 @@ class FeaturizeInterface:
     @property
     def model_dir(self) -> str:
         return os.path.dirname(self.model_path)
-
-    @property
-    def play_path(self) -> str:
-        return self.fmt_play % (self.__base_path, self.technique)
-
-    @property
-    def play_dir(self) -> str:
-        return os.path.dirname(self.play_path)
 
     def encode(self, X: np.array, Y: np.array, params: List[str]):
         """Encode all samples and save to disk."""

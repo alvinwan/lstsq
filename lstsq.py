@@ -30,6 +30,10 @@ from skimage.transform import rescale
 from scipy.sparse.linalg import svds
 from typing import Tuple
 
+from featurize.downsample import Downsample
+from featurize.pca import PCA
+from solve.ols import OLS
+
 
 def get_data(path: str, one_hotted: bool=False) -> Tuple[np.array, np.array]:
     """Grab data from provided path."""
@@ -46,12 +50,6 @@ def get_data(path: str, one_hotted: bool=False) -> Tuple[np.array, np.array]:
     if one_hotted:
         return X, one_hot(Y)
     return X, Y
-
-
-def one_hot(Y: np.array) -> np.array:
-    """One hot the provided list of classes."""
-    num_classes = len(np.unique(Y))
-    return np.eye(num_classes)[Y.astype(int)].reshape((Y.shape[0], num_classes))
 
 
 def phi_random(
@@ -92,40 +90,17 @@ def main():
 
     if pca_mode:
         X, Y = get_data(path=raw_path)
-
         featurizer = PCA(name, root, env)
         featurizer.encode(X, Y, params)
 
     if downsample_mode:
         X, Y = get_data(path=raw_path)
-
         featurizer = Downsample(name, root, env)
         featurizer.encode(X, Y, params)
 
     if ols_mode:
-        dirname = os.path.dirname(ols_path)
-        os.makedirs(os.path.join(dirname, featurize), exist_ok=True)
-        os.makedirs(dirname, exist_ok=True)
-        ks, accuracies = [], []
-
-        source_path = os.path.join(root, '%s-%s' % (name, featurize), '*.npz')
-        for path in glob.iglob(source_path):
-            k = float('.'.join(os.path.basename(path).split('.')[:-1]))
-            X, Y = get_data(path=path)
-            w = np.linalg.pinv(X.T.dot(X)).dot(X.T).dot(one_hot(Y))
-
-            guesses = np.argmax(X.dot(w), axis=1)
-            accuracy = np.sum(guesses == np.ravel(Y)) / float(Y.shape[0])
-            print(' * Accuracy for %f: %f' % (k, accuracy))
-
-            ks.append(k)
-            accuracies.append(accuracy)
-            np.savez_compressed(os.path.join(dirname, featurize, str(k)), w)
-
-        with open(os.path.join(dirname, 'results.csv'), 'w') as f:
-            writer = csv.writer(f)
-            for k, accuracy in zip(ks, accuracies):
-                writer.writerow([k, accuracy])
+        featurizer = Downsample(name, root, env)
+        solver = OLS(name, root, featurizer)
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 10
