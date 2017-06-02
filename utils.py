@@ -22,7 +22,6 @@ def get_data(path: str, one_hotted: bool=False) -> Tuple[np.array, np.array]:
         x, y = A[:, :-2], A[:, -2].reshape((-1, 1))
         X = x if X is None else np.vstack((X, x))
         Y = y if Y is None else np.vstack((Y, y))
-        break
     if one_hotted:
         return X, one_hot(Y)
     return X, Y

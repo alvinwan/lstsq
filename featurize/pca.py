@@ -14,9 +14,12 @@ class PCA(FeaturizeInterface):
         super(PCA, self).__init__(name, 'pca', root, env)
 
     def load_model(self, param: str):
-        pass
+        filename = os.path.join(self.encoded_dir, '%s-model.pkl' % param)
+        with open(filename, 'rb') as f:
+            model = pickle.load(f)
+        return model
 
-    def save_model(self, model, param: str):
+    def save_model(self, model, param: str) -> np.array:
         filename = os.path.join(self.encoded_dir, '%s-model.pkl' % param)
         with open(filename, 'wb') as f:
             pickle.dump(model, f)

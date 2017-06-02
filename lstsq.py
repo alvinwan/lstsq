@@ -1,9 +1,8 @@
 """Experiment using least squares to mimick 'optimal' policies.
 
 Usage:
-    lstsq.py all [options]
     lstsq.py encode <param> <param>... [options]
-    lstsq.py ols [options]
+    lstsq.py solve [options]
     lstsq.py play [--env_id=<id>] [--n_episodes=<n>] [options]
 
 Options:
@@ -56,15 +55,8 @@ def main():
     name = arguments['--name']
     featurize = arguments['--featurize'] or 'downsample' # TODO(Alvin) default?
 
-    raw_path = os.path.join(root, name, '*.npz')
-    pca_path = os.path.join(root, name + '-pca', '*.npz')
-    downsample_path = os.path.join(root, name + '-downsample', '*.npz')
-    ols_path = os.path.join(root, name + '-ols', '*.npz')
-    play_path = os.path.join(root, name + '-play', '*.npz')
-
-    all_mode = arguments['all']
     encode_mode = arguments['encode']
-    ols_mode = arguments['ols']
+    solve_mode = arguments['solve']
     play_mode = arguments['play']
 
     env_id = arguments['--env_id'] or 'SpaceInvadersNoFrameskip-v4'
@@ -78,58 +70,39 @@ def main():
     elif featurize == 'downsample':
         Featurizer = Downsample
     else:
-        raise UserWarning('Invalid encoding provided. Must be one of: %s' % featurizer.keys())
+        raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample')
 
+    raw_path = os.path.join(root, name, '*.npz')
     X, Y = get_data(path=raw_path)
     featurizer = Featurizer(name, root, env)
+    solver = OLS(name, root, featurizer)
 
     if encode_mode:
         featurizer.encode(X, Y, params)
 
-    if ols_mode:
-        solver = OLS(name, root, featurizer)
+    if solve_mode:
         solver.solve()
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 10
-        ols_dirname = os.path.dirname(ols_path)
-        dirname = os.path.dirname(play_path)
-        os.makedirs(dirname, exist_ok=True)
 
-        if featurize == 'downsample':
-            phi = phi_downsample
-            data = {'img_w': img_w, 'img_h': img_h, 'img_c': img_c}
-        elif featurize == 'pca':
-            phi = phi_pca
-            data = {'model': {}}
-        elif featurize == 'random':
-            phi = phi_random
-            data = {}
-        else:
-            raise UserWarning('Unknown featurization:', featurize)
-
-        source_path = os.path.join(ols_dirname, featurize, '*.npz')
+        source_path = os.path.join(solver.solve_dir, '*.npz')
         ks, average_rewards, total_rewards = [], [], []
         for path in glob.iglob(source_path):
             with np.load(path) as datum:
                 w = datum['arr_0']
-            k = float('.'.join(os.path.basename(path).split('.')[:-1]))
+            param = '.'.join(os.path.basename(path).split('.')[:-1])
             episode_rewards = []
-            total_rewards.append((k, episode_rewards))
+            total_rewards.append((param , episode_rewards))
 
-            if featurize == 'pca':
-                k = int(k)
-                pca_dirname = os.path.dirname(pca_path)
-                filename = os.path.join(pca_dirname, '%d-model.pkl' % k)
-                with open(filename, 'rb') as f:
-                    data['model'][k] = pickle.load(f)
+            model = featurizer.load_model(param)
 
             for _ in range(int(n_episodes)):
                 observation = env.reset()
                 rewards = 0
                 while True:
                     obs = observation.reshape((1, *observation.shape))
-                    featurized = phi(obs, k, **data)
+                    featurized = featurizer.phi(obs, model)
                     action = np.argmax(featurized.dot(w))
                     observation, reward, done, info = env.step(action)
                     rewards += reward
@@ -142,11 +115,11 @@ def main():
             average_rewards.append(average_reward)
 
         for k, rewards in total_rewards:
-            path = os.path.join(dirname, '%s-%f.txt' % (featurize, k))
+            path = os.path.join(solver.solve_dir, '%s-%f.txt' % (featurize, k))
             with open(path, 'w') as f:
                 f.write(','.join(map(str, rewards)))
 
-        with open(os.path.join(dirname, 'results.csv'), 'w') as f:
+        with open(os.path.join(solver.solve_dir, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
             for k, reward in zip(ks, average_rewards):
                 writer.writerow([k, reward])

@@ -14,14 +14,15 @@ class Downsample(FeaturizeInterface):
         self.image_shape = env.observation_space.shape
         self.img_w, self.img_h, self.img_c = self.image_shape
 
-    def load_model(self):
-        pass
+    def load_model(self, k: str) -> float:
+        return float(k)
 
-    def save_model(self, model, param: str):
+    def save_model(self, model, k: str):
         pass
 
     def phi(self, X: np.ndarray, k: float) -> np.array:
         """Downsample an image."""
+        k = float(k)
         new_w = np.round(self.img_w * k)
         new_h = np.round(self.img_h * k)
         new_d = int(new_w * new_h * self.img_c)
