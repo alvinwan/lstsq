@@ -30,6 +30,9 @@ from typing import Tuple
 from featurize.downsample import Downsample
 from featurize.pca import PCA
 from featurize.random import Random
+from featurize.convolveNormal import ConvolveNormal
+from featurize.convolveNormalSum import ConvolveNormalSum
+from featurize.convolveSlice import ConvolveSlice
 from solve.ols import OLS
 
 from utils import get_data
@@ -72,6 +75,12 @@ def main():
         Featurizer = Downsample
     elif featurize == 'random':
         Featurizer = Random
+    elif featurize == 'convolveNormal':
+        Featurizer = ConvolveNormal
+    elif featurize == 'convolveNormalSum':
+        Featurizer = ConvolveNormalSum
+    elif featurize == 'convolveSlice':
+        Featurizer = ConvolveSlice
     else:
         raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample, random')
 

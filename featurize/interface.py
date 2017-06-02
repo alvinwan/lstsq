@@ -29,6 +29,9 @@ class FeaturizeInterface:
         os.makedirs(self.encoded_dir, exist_ok=True)
         os.makedirs(self.model_dir, exist_ok=True)
 
+        self.image_shape = env.observation_space.shape
+        self.img_w, self.img_h, self.img_c = self.image_shape
+
     @property
     def __base_path(self) -> str:
         return os.path.join(self.root, self.name)

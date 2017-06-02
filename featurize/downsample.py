@@ -11,8 +11,6 @@ class Downsample(FeaturizeInterface):
 
     def __init__(self, name: str, root: str, env):
         super(Downsample, self).__init__(name, 'downsample', root, env)
-        self.image_shape = env.observation_space.shape
-        self.img_w, self.img_h, self.img_c = self.image_shape
 
     def load_model(self, k: str) -> float:
         return float(k)
