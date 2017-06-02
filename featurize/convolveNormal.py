@@ -14,7 +14,7 @@ class ConvolveNormal(FeaturizeInterface):
 
     def phi(self, X: np.ndarray, filters: List[np.array]) -> np.array:
         """Convolve with random normals."""
-        X = X.reshape((X.shape[0], *self.image_shape))
+        X = X.reshape([X.shape[0]] + list(self.image_shape))
         return np.maximum.reduce([
             ConvolveNormal.convolve3d(X, filter_) for filter_ in filters])
 
@@ -28,5 +28,6 @@ class ConvolveNormal(FeaturizeInterface):
         """Convolve 2d filter across 3d image."""
         n = in1.shape[0]
         return np.add.reduce([
-            np.add.reduce([convolve2d(in1[i,:,:,j], in2) for i in range(n)])
+            np.vstack([convolve2d(in1[i,:,:,j], in2).reshape((1, -1))
+                       for i in range(n)])
             for j in range(3)])
