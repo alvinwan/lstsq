@@ -75,7 +75,7 @@ class FeaturizeInterface:
         filename = os.path.join(self.encoded_dir, '%s-model.pkl' % param)
         with open(filename, 'wb') as f:
             pickle.dump(model, f)
-        print(' * Wrote %s model to %s' % (param, filename))
+        print(' * Wrote featurization model (%s) to %s' % (param, filename))
 
     def save_encoded(self, X: np.array, Y: np.array, param: str):
         """Save an encoded dataset with provided hyperparameters."""
@@ -85,7 +85,7 @@ class FeaturizeInterface:
         data = np.hstack((X, Y, placeholder))
         encoded_path = os.path.join(self.encoded_dir, param)
         np.savez_compressed(encoded_path, data)
-        print(' * Saved model to %s' % encoded_path)
+        print(' * Wrote encoded data (%s) to %s' % (param, encoded_path))
 
     def phi(self, X: np.array, model) -> np.array:
         """Featurize the provided set of sample. Returns 1xd row vector."""

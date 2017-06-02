@@ -22,6 +22,6 @@ class OLS(SolveInterface):
         np.savez_compressed(os.path.join(self.solve_dir, param), model)
 
     def load_model(self, param: str) -> np.array:
-        with open(os.path.join(self.solve_dir, self.featurize.technique, param)) as data:
+        with np.load(os.path.join(self.solve_dir, param + '.npz')) as data:
             model = data['arr_0']
         return model

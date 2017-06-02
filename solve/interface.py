@@ -13,6 +13,7 @@ class SolveInterface:
     """Interface for solving"""
 
     fmt_solve = '%s-solve/%s/*.npz'
+    fmt_play = '%s-play/%s/*.npz'
 
     def __init__(self, name: str, technique: str, root: str, featurize: FeaturizeInterface):
         """Initialize the featurization path.
@@ -28,6 +29,7 @@ class SolveInterface:
         self.featurize = featurize
 
         os.makedirs(self.solve_dir, exist_ok=True)
+        os.makedirs(self.play_dir, exist_ok=True)
 
     @property
     def __base_path(self) -> str:
@@ -40,6 +42,15 @@ class SolveInterface:
     @property
     def solve_dir(self) -> str:
         return os.path.dirname(self.solve_path)
+
+    # TODO(Alvin): These are misplaced - create a player class?
+    @property
+    def play_path(self) -> str:
+        return self.fmt_play % (self.__base_path, self.featurize.technique)
+
+    @property
+    def play_dir(self) -> str:
+        return os.path.dirname(self.play_path)
 
     def train(self, X: np.array, Y: np.array):
         """Train and return the model"""

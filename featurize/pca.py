@@ -13,8 +13,8 @@ class PCA(FeaturizeInterface):
         super(PCA, self).__init__(name, 'pca', root, env)
 
     def phi(self, X: np.ndarray, model) -> np.array:
-        """Downsample an image."""
-        return model.transform(X)
+        """Use PCA to project onto subspace."""
+        return model.transform(X.reshape((X.shape[0], -1)))
 
     def train(self, X: np.array, _, param: str):
         k = int(param)

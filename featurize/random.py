@@ -15,11 +15,10 @@ class Random(FeaturizeInterface):
     def save_model(self, model, param: str) -> np.array:
         pass
 
-    def phi(self, X: np.ndarray, model) -> np.array:
-        """Downsample an image."""
-        return np.random.random(X.shape)
+    def phi(self, X: np.ndarray, _) -> np.array:
+        return X
 
-    def train(self, X: np.array, _, param: str):
+    def train(self, X: np.array, Y: np.array, param: str):
         pass
 
     def save_encoded(self, X: np.ndarray, Y: np.array, param: str):
