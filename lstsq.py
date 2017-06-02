@@ -29,6 +29,7 @@ from typing import Tuple
 
 from featurize.downsample import Downsample
 from featurize.pca import PCA
+from featurize.random import Random
 from solve.ols import OLS
 
 from utils import get_data
@@ -69,8 +70,10 @@ def main():
         Featurizer = PCA
     elif featurize == 'downsample':
         Featurizer = Downsample
+    elif featurize == 'random':
+        Featurizer = Random
     else:
-        raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample')
+        raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample, random')
 
     raw_path = os.path.join(root, name, '*.npz')
     X, Y = get_data(path=raw_path)
@@ -110,12 +113,13 @@ def main():
                         episode_rewards.append(rewards)
                         break
             average_reward = sum(episode_rewards) / float(len(episode_rewards))
-            print(' * (%f) Average Reward: %f' % (k, average_reward))
-            ks.append(k)
+            print(' * (%s) Average Reward: %f' % (param, average_reward))
+            ks.append(param)
             average_rewards.append(average_reward)
 
         for k, rewards in total_rewards:
-            path = os.path.join(solver.solve_dir, '%s-%f.txt' % (featurize, k))
+            path = os.path.join(solver.solve_dir, '%s-%f.txt' % (
+                featurize, float(k)))
             with open(path, 'w') as f:
                 f.write(','.join(map(str, rewards)))
 
