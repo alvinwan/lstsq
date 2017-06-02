@@ -1,7 +1,12 @@
 from typing import List
 from featurize.interface import FeaturizeInterface
+from utils import get_data
 
 import numpy as np
+import os
+import os.path
+import glob
+import csv
 
 
 class SolveInterface:
@@ -9,7 +14,7 @@ class SolveInterface:
 
     fmt_solve = '%s-solve/%s/*.npz'
 
-    def __init__(name: str, technique: str, root: str, featurize: FeaturizeInterface):
+    def __init__(self, name: str, technique: str, root: str, featurize: FeaturizeInterface):
         """Initialize the featurization path.
 
         :param name: Name of scope for trial
@@ -30,7 +35,7 @@ class SolveInterface:
 
     @property
     def solve_path(self) -> str:
-        return self.fmt_solve % (self.__base_path, self.technique)
+        return self.fmt_solve % (self.__base_path, self.featurize.technique)
 
     @property
     def solve_dir(self) -> str:
@@ -47,14 +52,14 @@ class SolveInterface:
     def solve(self):
         """Solve for model and save model to disk."""
         params, accuracies = [], []
-        for path in glob.iglob(featurize.encoded_path):
+        for path in glob.iglob(self.featurize.encoded_path):
             param = '.'.join(os.path.basename(path).split('.')[:-1])
             X, Y = get_data(path=path)
             n = float(X.shape[0])
             model = self.train(X, Y)
             yhat = self.predict(X, model)
             accuracy = np.sum(yhat == Y) / n
-            print(' * Accuracy for %f: %f' % (k, accuracy))
+            print(' * Accuracy for %s: %f' % (param, accuracy))
             self.save_model(model, param)
             params.append(param)
             accuracies.append(accuracy)

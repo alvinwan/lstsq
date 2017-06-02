@@ -2,8 +2,7 @@
 
 Usage:
     lstsq.py all [options]
-    lstsq.py pca <param> <param>... [options]
-    lstsq.py downsample <param> <param>... [options]
+    lstsq.py encode <param> <param>... [options]
     lstsq.py ols [options]
     lstsq.py play [--env_id=<id>] [--n_episodes=<n>] [options]
 
@@ -48,6 +47,9 @@ def phi_random(
 
 def main():
 
+    random.seed(0)
+    np.random.seed(0)
+
     arguments = docopt.docopt(__doc__)
 
     root = arguments['--root']
@@ -61,8 +63,7 @@ def main():
     play_path = os.path.join(root, name + '-play', '*.npz')
 
     all_mode = arguments['all']
-    pca_mode = arguments['pca']
-    downsample_mode = arguments['downsample']
+    encode_mode = arguments['encode']
     ols_mode = arguments['ols']
     play_mode = arguments['play']
 
@@ -72,28 +73,28 @@ def main():
 
     params = arguments['<param>']
 
-    if pca_mode:
-        X, Y = get_data(path=raw_path)
-        featurizer = PCA(name, root, env)
-        featurizer.encode(X, Y, params)
+    if featurize == 'pca':
+        Featurizer = PCA
+    elif featurize == 'downsample':
+        Featurizer = Downsample
+    else:
+        raise UserWarning('Invalid encoding provided. Must be one of: %s' % featurizer.keys())
 
-    if downsample_mode:
-        X, Y = get_data(path=raw_path)
-        featurizer = Downsample(name, root, env)
+    X, Y = get_data(path=raw_path)
+    featurizer = Featurizer(name, root, env)
+
+    if encode_mode:
         featurizer.encode(X, Y, params)
 
     if ols_mode:
-        featurizer = Downsample(name, root, env)
         solver = OLS(name, root, featurizer)
+        solver.solve()
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 10
         ols_dirname = os.path.dirname(ols_path)
         dirname = os.path.dirname(play_path)
         os.makedirs(dirname, exist_ok=True)
-
-        random.seed(0)
-        np.random.seed(0)
 
         if featurize == 'downsample':
             phi = phi_downsample
