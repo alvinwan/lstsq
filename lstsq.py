@@ -1,19 +1,21 @@
 """Experiment using least squares to mimick 'optimal' policies.
 
 Usage:
+    lstsq.py encode <param> [options]
     lstsq.py encode <param> <param>... [options]
     lstsq.py solve [options]
     lstsq.py play [--n_episodes=<n>] [options]
     lstsq.py random [--n_episodes=<n>] [options]
 
 Options:
-    --env_id=<id>   ID of environment to play in
-    --name=<name>   Name of trial - looks for <root>/<name>/*.npz [default: raw]
-    --root=<root>   Root of data path [default: ./data/]
-    --featurize=<f> Name of featurization technique [default: downsample]
-    --params=<s>    Comma-separated string of params to use
-    --solver=<s>    Name of solver to use [default: ols]
-    --record        Whether or not to record
+    --env_id=<id>           ID of environment to play in [default: SpaceInvaders-v4]
+    --name=<name>           Name of trial - looks for <root>/<name>/*.npz [default: raw]
+    --root=<root>           Root of data path [default: ./data/]
+    --featurize=<f>         Name of featurization technique [default: downsample]
+    --params=<s>            Comma-separated string of params to use
+    --solver=<s>            Name of solver to use [default: ols]
+    --record                Whether or not to record
+    --n_train_episodes=<n>  Number of episodes to train on [default: -1]
 """
 
 import docopt
@@ -24,13 +26,8 @@ import glob
 import csv
 import gym
 import random
-import cv2
-import pickle
 import time
 
-from skimage.transform import rescale
-from scipy.sparse.linalg import svds
-from typing import Tuple
 from gym import wrappers
 
 from featurize.downsample import Downsample
@@ -43,16 +40,6 @@ from solve.ols import OLS
 from solve.random import Random as RandomSolve
 
 from utils import get_data
-
-
-def phi_random(
-        X: np.array,
-        k: float) -> np.array:
-    """Run a random agent by generating a random featurization."""
-    new_w = np.round(img_w * k)
-    new_h = np.round(img_h * k)
-    new_d = int(new_w * new_h * img_c)
-    return np.random.random((X.shape[0], new_d))
 
 
 def main():
@@ -71,12 +58,17 @@ def main():
     encode_mode = arguments['encode']
     solve_mode = arguments['solve']
     play_mode = arguments['play']
+    n_train_episodes = int(arguments['--n_train_episodes'])
 
-    env_id = arguments['--env_id'] or 'SpaceInvadersNoFrameskip-v4'
+    env_id = arguments['--env_id']
     env = gym.make(env_id)
-    img_h, img_w, img_c = env.observation_space.shape
 
-    params = arguments['<param>'] or arguments['--params'].split(',')
+    params = arguments['<param>']
+    if not isinstance(params, list):
+        params = [params]
+    if arguments['--params'] and not params:
+        params = arguments['--params'].split(',')
+
 
     if random_mode:
         featurize = solver = 'random'
@@ -104,12 +96,12 @@ def main():
     else:
         raise UserWarning('Invalid solver provided.')
 
-    raw_path = os.path.join(root, name, '*.npz')
+    raw_path = os.path.join(root, 'raw', '*.npz')  # temporarily hard-coded
     featurizer = Featurizer(name, root, env)
     solver = Solver(name, root, featurizer)
 
     if encode_mode:
-        X, Y = get_data(path=raw_path)
+        X, Y = get_data(path=raw_path, n_train_episodes=n_train_episodes)
         featurizer.encode(X, Y, params)
 
     if solve_mode:
@@ -132,6 +124,8 @@ def main():
             paths = glob.iglob(source_path)
             parameters = ['.'.join(os.path.basename(path).split('.')[:-1])
                           for path in paths]
+            if not parameters:
+                raise UserWarning('No solved models found. Did you forget to run `solve`?')
         average_rewards, total_rewards = [], []
         for param in parameters:
             episode_rewards = []
@@ -154,8 +148,6 @@ def main():
             average_reward = sum(episode_rewards) / float(len(episode_rewards))
             print(' * (%s) Average Reward: %f' % (param, average_reward))
             average_rewards.append(average_reward)
-        if not parameters:
-            raise UserWarning('No solved models found. Did you forget to run `solve`?')
 
         for k, rewards in total_rewards:
             path = os.path.join(solver.play_dir, '%s-%f.txt' % (
