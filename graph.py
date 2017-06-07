@@ -3,8 +3,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from typing import List
 
-plt.figure()
-plt.title('Average Rewards')
 
 def str_to_averages(string: str) -> List:
     rewards = list(map(float, string.split(',')))
@@ -19,9 +17,30 @@ def plot_results(path: str, label: str) -> None:
         n = len(average_rewards)
         plt.plot(range(n), average_rewards, label=label)
 
-plot_results('./data/raw-play/downsample-0.100000.txt', 'human, downsample')
-plot_results('./data/raw-play/random-0.100000.txt', 'human, random')
-plot_results('./data/raw-play/pca-10.000000.txt', 'human, pca')
+def get_average_reward(path: str) -> int:
+    with open(path) as f:
+        rewards = list(map(float, next(f).split(',')))
+        return sum(rewards) / float(len(rewards))
 
+# Plot average rewards as training progresses
+plt.figure()
+plt.title('Average Rewards by Featurization Technique')
+plt.xlabel('Number of episodes played')
+plt.ylabel('Average Reward')
+plot_results('./data/raw-play/downsample/downsample-0.100000.txt', 'human, downsample')
+plot_results('./data/raw-play/random/random-1.000000.txt', 'human, random')
+plot_results('./data/raw-play/pca/pca-8.000000.txt', 'human, pca')
 plt.legend()
 plt.savefig('./data/raw-play/averages.png')
+
+
+# Plot average rewards per PCA dimensions
+plt.figure()
+plt.title('Average Rewards with PCA Dimensions')
+plt.xlabel('Dimensionality of subspace')
+plt.ylabel('Average Reward')
+ds = list(range(5, 15)) + [20, 25, 35, 100, 500, 1000]
+average_rewards = [get_average_reward('./data/raw-play/pca/pca-%d.000000.txt' % d) for d in ds]
+plt.plot(ds, average_rewards, label='ols')
+plt.legend()
+plt.savefig('./data/raw-play/pca.png')
