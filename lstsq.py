@@ -87,10 +87,12 @@ def main():
     elif featurize == 'convolveSlice':
         Featurizer = ConvolveSlice
     else:
-        raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample, random')
+        raise UserWarning('Invalid encoding provided. Must be one of: pca, downsample, random, convolveNormal, convolveNormalSum, convolveSlice')
 
     if solver == 'ols':
         Solver = OLS
+    elif solver == 'rols':
+        Solver = RegularizedOLS
     elif solver == 'random':
         Solver = RandomSolve
     else:
@@ -112,8 +114,8 @@ def main():
         time_id = str(time.time())[-5:]
         print(' * New time id %s' % time_id)
 
-        if arguments['--record']:
-            env = wrappers.Monitor(env, os.path.join(solver.play_dir, time_id))
+        env = wrappers.Monitor(env, os.path.join(solver.play_dir, time_id),
+                               video_callable=lambda _: arguments['--record'])
 
         if params:
             source_path_fmt = os.path.join(solver.solve_dir, '%s.npz')
@@ -128,12 +130,12 @@ def main():
                 raise UserWarning('No solved models found. Did you forget to run `solve`?')
         average_rewards, total_rewards = [], []
         for param in parameters:
-            episode_rewards = []
-            total_rewards.append((param , episode_rewards))
             feature_model = featurizer.load_model(param)
             solve_model = solver.load_model(param)
+            total_rewards.append((param , episode_rewards))
 
-            for _ in range(int(n_episodes)):
+            best_mean_reward = 0
+            for i in range(int(n_episodes)):
                 observation = env.reset()
                 rewards = 0
                 while True:
@@ -141,12 +143,13 @@ def main():
                     featurized = featurizer.phi(obs, feature_model)
                     action = solver.predict(featurized, solve_model)
                     observation, reward, done, info = env.step(action)
-                    rewards += reward
                     if done:
-                        episode_rewards.append(rewards)
+                        env.reset()
+                        episode_rewards.append(env.get_episode_rewards()[-1])
+                        if i % 100 == 0 and i > 0:
+                            best_mean_reward = max(best_mean_reward, np.mean(env.get_episode_rewards[-100:]))
                         break
-            average_reward = sum(episode_rewards) / float(len(episode_rewards))
-            print(' * (%s) Average Reward: %f' % (param, average_reward))
+            print(' * (%s) Best Mean Reward: %f' % (param, best_mean_reward))
             average_rewards.append(average_reward)
 
         for k, rewards in total_rewards:
