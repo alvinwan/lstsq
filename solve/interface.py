@@ -52,13 +52,13 @@ class SolveInterface:
     def play_dir(self) -> str:
         return os.path.dirname(self.play_path)
 
-    def train(self, X: np.array, Y: np.array):
+    def train(self, X: np.array, Y: np.array, param: str):
         """Train and return the model"""
         raise NotImplementedError()
 
     def predict(self, X: np.array, model):
         """Predict using the new data. Return nx1 column vector."""
-        raise NotImplementedError()
+        return np.argmax(self.evaluate(X, model), axis=1).reshape((-1, 1))
 
     def solve(self):
         """Solve for model and save model to disk."""
@@ -67,7 +67,7 @@ class SolveInterface:
             param = '.'.join(os.path.basename(path).split('.')[:-1])
             X, Y = get_data(path=path)
             n = float(X.shape[0])
-            model = self.train(X, Y)
+            model = self.train(X, Y, param)
             yhat = self.predict(X, model)
             accuracy = np.sum(yhat == Y) / n
             print(' * Accuracy for %s: %f' % (param, accuracy))
@@ -81,8 +81,10 @@ class SolveInterface:
 
     def save_model(self, model, param: str):
         """Save the model to disk."""
-        raise NotImplementedError()
+        np.savez_compressed(os.path.join(self.solve_dir, param), model)
 
-    def load_model(self, param: str):
+    def load_model(self, param: str) -> np.array:
         """Load the model"""
-        raise NotImplementedError()
+        with np.load(os.path.join(self.solve_dir, param + '.npz')) as data:
+            model = data['arr_0']
+        return model
