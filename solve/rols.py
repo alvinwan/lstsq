@@ -1,7 +1,10 @@
 """L2 regularized least squares"""
 
-
+from featurize.interface import FeaturizeInterface
 from .ols import OLS
+from utils import one_hot
+
+import numpy as np
 
 
 class RegularizedOLS(OLS):

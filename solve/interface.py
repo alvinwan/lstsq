@@ -14,6 +14,7 @@ class SolveInterface:
 
     fmt_solve = '%s-solve/%s/*.npz'
     fmt_play = '%s-play/%s/*.npz'
+    fmt_prepared = '%s-prepared/%s/%d/data.npz'
 
     def __init__(self, name: str, technique: str, root: str, featurize: FeaturizeInterface):
         """Initialize the featurization path.
@@ -34,6 +35,12 @@ class SolveInterface:
     @property
     def __base_path(self) -> str:
         return os.path.join(self.root, self.name)
+
+    def prepared_path(self, n: int) -> str:
+        return self.fmt_prepared % (self.__base_path, self.featurize.technique, n)
+
+    def prepared_dir(self, n: int) -> str:
+        return os.path.dirname(self.prepared_path(n))
 
     @property
     def solve_path(self) -> str:
@@ -60,7 +67,7 @@ class SolveInterface:
         """Predict using the new data. Return nx1 column vector."""
         return np.argmax(self.evaluate(X, model), axis=1).reshape((-1, 1))
 
-    def solve(self):
+    def solve(self, X: np.array, Y: np.array, param: str):
         """Solve for model and save model to disk."""
         params, accuracies = [], []
         for path in glob.iglob(self.featurize.encoded_path):
@@ -88,3 +95,14 @@ class SolveInterface:
         with np.load(os.path.join(self.solve_dir, param + '.npz')) as data:
             model = data['arr_0']
         return model
+
+    def save_prepared(self, X: np.array, Y: np.array, n: int):
+        placeholder = np.zeros((X.shape[0], 1))
+
+        data = np.hstack((X, Y, placeholder))
+        np.savez_compressed(self.prepared_path(n), data)
+
+    def load_prepared(self, n: int):
+        with np.load(os.path.join(self.prepared_path(n))) as data:
+            data = data['arr_0']
+        return data

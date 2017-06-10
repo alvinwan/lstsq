@@ -1,8 +1,12 @@
 """Experiment using least squares to mimick 'optimal' policies.
 
 Usage:
+    lstsq.py train <param> [options]
+    lstsq.py train <param> <param>... [options]
     lstsq.py encode <param> [options]
     lstsq.py encode <param> <param>... [options]
+    lstsq.py prepare <n> [options]
+    lstsq.py prepare <n> <n>... [options]
     lstsq.py solve [options]
     lstsq.py play [--n_episodes=<n>] [options]
     lstsq.py random [--n_episodes=<n>] [options]
@@ -36,9 +40,11 @@ from featurize.random import Random
 from featurize.convolveNormal import ConvolveNormal
 from featurize.convolveNormalSum import ConvolveNormalSum
 from featurize.convolveSlice import ConvolveSlice
+from solve.rols import RegularizedOLS
 from solve.ols import OLS
 from solve.random import Random as RandomSolve
 
+from utils import get_data_with_lengths
 from utils import get_data
 
 
@@ -54,6 +60,7 @@ def main():
     featurize = arguments['--featurize'] or 'downsample' # TODO(Alvin) default?
     solver = arguments['--solver']
 
+    train_mode = arguments['train']
     random_mode = arguments['random']
     encode_mode = arguments['encode']
     solve_mode = arguments['solve']
@@ -69,6 +76,9 @@ def main():
     if arguments['--params'] and not params:
         params = arguments['--params'].split(',')
 
+    ns = arguments['<n>']
+    if not isinstance(ns, list):
+        ns = [ns]
 
     if random_mode:
         featurize = solver = 'random'
@@ -102,12 +112,30 @@ def main():
     featurizer = Featurizer(name, root, env)
     solver = Solver(name, root, featurizer)
 
-    if encode_mode:
+    if train_mode:
         X, Y = get_data(path=raw_path, n_train_episodes=n_train_episodes)
-        featurizer.encode(X, Y, params)
+        for param in params:
+            model = featurizer.train(X, Y, param)
+            featurizer.save_model(model, param)
+
+    if encode_mode:
+        for param in params:
+            model = featurizer.load_model(param)
+            for path in glob.iglob(raw_path):
+                X, Y = get_data(path)
+                featurized_X = featurizer.phi(X, model)
+                featurizer.save_encoded(featurized_X, Y, param, path)
+
+    if prepare_mode:
+        for param in params:
+            for n in ns:
+                X, Y = get_data(path=featurizer.encoded_path(param), n_train_episodes=n)
+                solver.save_prepared(X, Y, n)
 
     if solve_mode:
-        solver.solve()
+        for param in params:
+
+            solver.solve()
 
     if play_mode:
         n_episodes = arguments['--n_episodes'] or 1
@@ -132,12 +160,12 @@ def main():
         for param in parameters:
             feature_model = featurizer.load_model(param)
             solve_model = solver.load_model(param)
+            episode_rewards = []
             total_rewards.append((param , episode_rewards))
 
             best_mean_reward = 0
             for i in range(int(n_episodes)):
                 observation = env.reset()
-                rewards = 0
                 while True:
                     obs = observation.reshape((1, *observation.shape))
                     featurized = featurizer.phi(obs, feature_model)
@@ -150,7 +178,7 @@ def main():
                             best_mean_reward = max(best_mean_reward, np.mean(env.get_episode_rewards[-100:]))
                         break
             print(' * (%s) Best Mean Reward: %f' % (param, best_mean_reward))
-            average_rewards.append(average_reward)
+            average_rewards.append(best_mean_reward)
 
         for k, rewards in total_rewards:
             path = os.path.join(solver.play_dir, '%s-%f.txt' % (
