@@ -37,6 +37,7 @@ from featurize.convolveNormal import ConvolveNormal
 from featurize.convolveNormalSum import ConvolveNormalSum
 from featurize.convolveSlice import ConvolveSlice
 from solve.ols import OLS
+from solve.rols import RegularizedOLS
 from solve.random import Random as RandomSolve
 
 from utils import get_data
@@ -132,6 +133,7 @@ def main():
         for param in parameters:
             feature_model = featurizer.load_model(param)
             solve_model = solver.load_model(param)
+            episode_rewards = []
             total_rewards.append((param , episode_rewards))
 
             best_mean_reward = 0
@@ -150,7 +152,7 @@ def main():
                             best_mean_reward = max(best_mean_reward, np.mean(env.get_episode_rewards[-100:]))
                         break
             print(' * (%s) Best Mean Reward: %f' % (param, best_mean_reward))
-            average_rewards.append(average_reward)
+            average_rewards.append(best_mean_reward)
 
         for k, rewards in total_rewards:
             path = os.path.join(solver.play_dir, '%s-%f.txt' % (
