@@ -16,19 +16,15 @@ Options:
     --solver=<s>            Name of solver to use [default: ols]
     --record                Whether or not to record
     --n_train_episodes=<n>  Number of episodes to train on [default: -1]
+    --player=<p>            Type of play [default: simple]
 """
 
 import docopt
 import numpy as np
 import os
 import os.path
-import glob
-import csv
 import gym
 import random
-import time
-
-from gym import wrappers
 
 from featurize.downsample import Downsample
 from featurize.pca import PCA
@@ -39,6 +35,7 @@ from featurize.convolveSlice import ConvolveSlice
 from solve.ols import OLS
 from solve.rols import RegularizedOLS
 from solve.random import Random as RandomSolve
+from play.simple import SimplePlay
 
 from utils import get_data
 
@@ -54,6 +51,7 @@ def main():
     name = arguments['--name']
     featurize = arguments['--featurize'] or 'downsample' # TODO(Alvin) default?
     solver = arguments['--solver']
+    player = arguments['--player']
 
     random_mode = arguments['random']
     encode_mode = arguments['encode']
@@ -99,6 +97,11 @@ def main():
     else:
         raise UserWarning('Invalid solver provided.')
 
+    if player == 'simple':
+        Player = SimplePlay
+    else:
+        raise UserWarning('Invalid player provided.')
+
     raw_path = os.path.join(root, 'raw', '*.npz')  # temporarily hard-coded
     featurizer = Featurizer(name, root, env)
     solver = Solver(name, root, featurizer)
@@ -111,59 +114,13 @@ def main():
         solver.solve()
 
     if play_mode:
+
         n_episodes = arguments['--n_episodes'] or 1
-        time_id = str(time.time())[-5:]
-        print(' * New time id %s' % time_id)
 
-        env = wrappers.Monitor(env, os.path.join(solver.play_dir, time_id),
-                               video_callable=lambda _: arguments['--record'])
-
-        if params:
-            source_path_fmt = os.path.join(solver.solve_dir, '%s.npz')
-            paths = [source_path_fmt % param for param in params]
-            parameters = params
-        else:
-            source_path = os.path.join(solver.solve_dir, '*.npz')
-            paths = glob.iglob(source_path)
-            parameters = ['.'.join(os.path.basename(path).split('.')[:-1])
-                          for path in paths]
-            if not parameters:
-                raise UserWarning('No solved models found. Did you forget to run `solve`?')
-        average_rewards, total_rewards = [], []
-        for param in parameters:
-            feature_model = featurizer.load_model(param)
-            solve_model = solver.load_model(param)
-            episode_rewards = []
-            total_rewards.append((param , episode_rewards))
-
-            best_mean_reward = 0
-            for i in range(int(n_episodes)):
-                observation = env.reset()
-                rewards = 0
-                while True:
-                    obs = observation.reshape((1, *observation.shape))
-                    featurized = featurizer.phi(obs, feature_model)
-                    action = solver.predict(featurized, solve_model)
-                    observation, reward, done, info = env.step(action)
-                    if done:
-                        env.reset()
-                        episode_rewards.append(env.get_episode_rewards()[-1])
-                        if i % 100 == 0 and i > 0:
-                            best_mean_reward = max(best_mean_reward, np.mean(env.get_episode_rewards[-100:]))
-                        break
-            print(' * (%s) Best Mean Reward: %f' % (param, best_mean_reward))
-            average_rewards.append(best_mean_reward)
-
-        for k, rewards in total_rewards:
-            path = os.path.join(solver.play_dir, '%s-%f.txt' % (
-                featurize, float(k)))
-            with open(path, 'w') as f:
-                f.write(','.join(map(str, rewards)))
-
-        with open(os.path.join(solver.play_dir, 'results.csv'), 'w') as f:
-            writer = csv.writer(f)
-            for param, reward in zip(parameters, average_rewards):
-                writer.writerow([param, reward])
+        player = Player(env, solver, featurizer, arguments['--record'], params)
+        total_rewards, average_rewards = player.run(n_episodes)
+        player.save_results(average_rewards)
+        player.save_rewards(total_rewards)
 
 
 if __name__ == '__main__':
