@@ -114,13 +114,10 @@ def main():
         solver.solve()
 
     if play_mode:
-
-        n_episodes = arguments['--n_episodes'] or 1
-
+        n_episodes = int(arguments['--n_episodes']) or 1
         player = Player(env, solver, featurizer, arguments['--record'], params)
-        total_rewards, average_rewards = player.run(n_episodes)
-        player.save_results(average_rewards)
-        player.save_rewards(total_rewards)
+        record = player.run(n_episodes)
+        player.log(record)
 
 
 if __name__ == '__main__':
