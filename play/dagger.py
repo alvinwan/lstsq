@@ -3,7 +3,6 @@ from .interface import PlayInterface
 from featurize.atari import AtariConv3
 from typing import List
 from path import Path
-from utils import wrap_custom
 
 import os.path
 import time
@@ -20,7 +19,7 @@ class DaggerPlay(PlayInterface):
             *args,
             replay_buffer_size: int=1000000,
             frame_history_len: int=4, **kwargs):
-        super(DaggerPlay, self).__init__(path, wrap_custom(env), *args, **kwargs)
+        super(DaggerPlay, self).__init__(path, env, *args, **kwargs)
 
         self.replay_buffer_size = replay_buffer_size
         self.frame_history_len = frame_history_len
@@ -81,6 +80,7 @@ def sample_n_unique(sampling_f, n):
 
 def write_sar_log(sars: List, logdir: str, episode_reward: int, name: str):
     """Write state-action-rewards to a log file."""
+    os.makedirs(logdir, exist_ok=True)
     np.savez_compressed(
         os.path.join(
             logdir, '%s_%s_%s' % (

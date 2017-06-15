@@ -1,11 +1,10 @@
 from path import Path
 from featurize.interface import FeaturizeInterface
-from utils import get_data
+from typing import List
 
 import numpy as np
 import os
 import os.path
-import glob
 import csv
 
 
@@ -31,31 +30,37 @@ class SolveInterface:
     def evaluate(self, X: np.array, model) -> np.array:
         raise NotImplementedError()
 
-    def solve(self):
+    def solve(
+            self,
+            X: np.array,
+            Y: np.array,
+            feature_param: str='',
+            solver_params: List[str] = ()):
         """Solve for model and save model to disk."""
-        params, accuracies = [], []
-        for path in glob.iglob(self.path.encoded):
-            param = '.'.join(os.path.basename(path).split('.')[:-1])
-            X, Y = get_data(path=path)
+        accuracies = []
+        for param in solver_params:
             n = float(X.shape[0])
             model = self.train(X, Y, param)
             yhat = self.predict(X, model)
             accuracy = np.sum(yhat == Y) / n
-            print(' * Accuracy for %s: %f' % (param, accuracy))
-            self.save_model(model, param)
-            params.append(param)
+            print(' * Accuracy for %s, %s: %f' % (feature_param, param, accuracy))
+            self.save_model(model, feature_param, param)
             accuracies.append(accuracy)
         with open(os.path.join(self.path.solve_dir, 'results.csv'), 'w') as f:
             writer = csv.writer(f)
-            for param, accuracy in zip(params, accuracies):
-                writer.writerow([param, accuracy])
+            for param, accuracy in zip(solver_params, accuracies):
+                writer.writerow([feature_param, param, accuracy])
 
-    def save_model(self, model, param: str):
+    def save_model(self, model, feature_param: str, param: str):
         """Save the model to disk."""
+        if feature_param:
+            param = '%s-%s' % (feature_param, param)
         np.savez_compressed(os.path.join(self.path.solve_dir, param), model)
 
-    def load_model(self, param: str) -> np.array:
+    def load_model(self, feature_param: str, param: str) -> np.array:
         """Load the model"""
+        if feature_param:
+            param = '%s-%s' % (feature_param, param)
         with np.load(os.path.join(self.path.solve_dir, param + '.npz')) as data:
             model = data['arr_0']
         return model

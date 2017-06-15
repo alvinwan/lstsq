@@ -19,6 +19,7 @@ def get_data(
         one_hotted: bool=False,
         n_train_episodes: int=-1) -> Tuple[np.array, np.array]:
     """Grab data from provided path."""
+    print(path)
     X, Y = None, None
     by_score = lambda p: int(p.split('_')[-1].split('.')[0] or 0)
     for i, fpath in enumerate(sorted(
