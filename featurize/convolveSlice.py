@@ -1,17 +1,14 @@
-from .interface import FeaturizeInterface
-from scipy.signal import convolve2d
-from typing import List
+from path import Path
 from .convolveNormal import ConvolveNormal
 
-import os.path
 import numpy as np
 
 
 class ConvolveSlice(ConvolveNormal):
     """Run state through convolutions, where filters are random normals."""
 
-    def __init__(self, name: str, root: str, env):
-        super(ConvolveSlice, self).__init__(name, root, env, 'convolveSlice')
+    def __init__(self, path: Path, env):
+        super(ConvolveSlice, self).__init__(path, env)
         self.image_shape = env.observation_space.shape
         self.w, self.h, self.c = self.image_shape
 

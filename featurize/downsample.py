@@ -9,9 +9,6 @@ import os.path
 class Downsample(FeaturizeInterface):
     """Downsample the raw pixels."""
 
-    def __init__(self, name: str, root: str, env):
-        super(Downsample, self).__init__(name, 'downsample', root, env)
-
     def load_model(self, k: str) -> float:
         return float(k)
 

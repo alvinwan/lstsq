@@ -6,9 +6,6 @@ import numpy as np
 class Random(FeaturizeInterface):
     """Random agent."""
 
-    def __init__(self, name: str, root: str, env):
-        super(Random, self).__init__(name, 'random', root, env)
-
     def load_model(self, param: str):
         pass
 

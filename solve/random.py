@@ -8,9 +8,6 @@ import os.path
 
 class Random(SolveInterface):
 
-    def __init__(self, name: str, root: str, featurizer: FeaturizeInterface):
-        super(Random, self).__init__(name, 'random', root, featurizer)
-
     def predict(self, X: np.array, num_actions: int):
         """Predict using the new data. Return nx1 column vector."""
         return np.random.randint(0, num_actions)

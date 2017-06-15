@@ -9,9 +9,6 @@ import numpy as np
 class ConvolveNormal(FeaturizeInterface):
     """Run state through convolutions, where filters are random normals."""
 
-    def __init__(self, name: str, root: str, env, technique: str='convolve'):
-        super(ConvolveNormal, self).__init__(name, technique, root, env)
-
     def phi(self, X: np.ndarray, filters: List[np.array]) -> np.array:
         """Convolve with random normals."""
         X = X.reshape([X.shape[0]] + list(self.image_shape))
