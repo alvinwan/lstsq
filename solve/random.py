@@ -12,11 +12,11 @@ class Random(SolveInterface):
         """Predict using the new data. Return nx1 column vector."""
         return np.random.randint(0, num_actions)
 
-    def train(self, X: np.array, Y: np.array) -> np.array:
+    def train(self, X: np.array, Y: np.array, solver_param: str) -> np.array:
         pass
 
-    def save_model(self, model, param: str):
+    def save_model(self, model, feature_param: str, solver_param: str):
         pass
 
-    def load_model(self, param: str) -> int:
+    def load_model(self, feature_param: str, solver_param: str) -> np.array:
         return 4

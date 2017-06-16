@@ -71,10 +71,10 @@ class PlayInterface:
     def update_record_on_action(
             self,
             action: int,
+            done: bool,
             observation: np.array,
-            reward: int,
             record: dict,
-            done: bool):
+            reward: int):
         pass
 
     def update_record_on_episode_finish(self, i: int, record: dict):
@@ -113,7 +113,7 @@ class PlayInterface:
                         action = self.solver.predict(featurized, solve_model)
                         observation, reward, done, info = self.env.step(action)
                         self.update_record_on_action(
-                            action, observation, reward, record, done)
+                            action, done, observation, record, reward)
                         if done:
                             self.env.reset()
                             self.update_record_on_episode_finish(i, record)
@@ -137,8 +137,8 @@ class PlayInterface:
     def save_rewards(self, record):
         """Save all rewards, per episode."""
         total_rewards = record['total_rewards']
-        for k, rewards in total_rewards:
-            path = os.path.join(self.path.play_dir, '%s-%f.txt' % (
-                self.path.featurization, float(k)))
+        for feature_param, solver_param, rewards in total_rewards:
+            path = os.path.join(self.path.play_dir, '%s-%s-%s.txt' % (
+                self.path.featurization, feature_param, solver_param))
             with open(path, 'w') as f:
                 f.write(','.join(map(str, rewards)))

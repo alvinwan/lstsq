@@ -26,16 +26,17 @@ def get_average_reward(path: str) -> int:
 
 random_reward = get_average_reward('./data/raw-play/random/random-1.000000.txt')
 
-# # Plot average rewards as training progresses
-# plt.figure()
-# plt.title('Average Rewards by Featurization Technique')
-# plt.xlabel('Number of episodes played')
-# plt.ylabel('Average Reward')
-# plot_results('./data/raw-play/downsample/downsample-0.400000.txt', 'human, downsample')
-# plot_results('./data/raw-play/random/random-1.000000.txt', 'human, random')
-# plot_results('./data/raw-play/pca/pca-8.000000.txt', 'human, pca')
-# plt.legend()
-# plt.savefig('./data/raw-play/averages.png')
+# Plot average rewards as training progresses
+plt.figure()
+plt.title('Average Rewards by Featurization Technique')
+plt.xlabel('Number of episodes played')
+plt.ylabel('Average Reward')
+plot_results('./data/raw-play/downsample/downsample-0.400000.txt', 'human, downsample, ols')
+plot_results('./data/raw-play/random/random-1.000000.txt', 'human, random, ols')
+plot_results('./data/raw-play/pca/pca-8.000000.txt', 'human, pca, ols')
+plot_results('./data/atari-play/pca-ols/pca-8-1e1.txt', 'atari, pca, ols')
+plt.legend()
+plt.savefig('./data/raw-play/averages.png')
 #
 #
 # # Plot average rewards per downsample rate
@@ -63,14 +64,14 @@ random_reward = get_average_reward('./data/raw-play/random/random-1.000000.txt')
 # plt.savefig('./data/raw-play/pca.png')
 
 
-# Plot average rewards per number training episodes used
-plt.figure()
-plt.title('Average Rewards per Number Training Episodes')
-plt.xlabel('Number Training Episodes')
-plt.ylabel('Average Reward (500 episodes)')
-ts = [1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-average_rewards = [get_average_reward('./data/%d-episodes-play/pca/pca-8.000000.txt' % t) for t in ts]
-plt.plot(ts, average_rewards, label='ols')
-plt.plot(ts, [random_reward] * len(average_rewards), label='random')
-plt.legend()
-plt.savefig('./data/raw-play/training.png')
+# # Plot average rewards per number training episodes used
+# plt.figure()
+# plt.title('Average Rewards per Number Training Episodes')
+# plt.xlabel('Number Training Episodes')
+# plt.ylabel('Average Reward (500 episodes)')
+# ts = [1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+# average_rewards = [get_average_reward('./data/%d-episodes-play/pca/pca-8.000000.txt' % t) for t in ts]
+# plt.plot(ts, average_rewards, label='ols')
+# plt.plot(ts, [random_reward] * len(average_rewards), label='random')
+# plt.legend()
+# plt.savefig('./data/raw-play/training.png')

@@ -31,27 +31,32 @@ class DaggerPlay(PlayInterface):
         self.atari = AtariConv3(path, self.env)
         self.network = None
 
-    def init_record_for_param(self, record: dict, param: str) -> dict:
-        super().init_record_for_param(record, param)
+    def init_record_for_param(
+            self,
+            record: dict,
+            feature_param: str,
+            solver_param: str) -> dict:
+        super().init_record_for_param(record, feature_param, solver_param)
         record['obs_sars'] = []
-        self.network = self.atari.load_model(param)
+        self.network = self.atari.load_model(feature_param)  # argument ignored
         return record
 
-    def print_record_on_param_finish(self, param: str, record: dict):
-        super().print_record_on_param_finish(param, record)
+    def update_record_on_episode_finish(self, i: int, record: dict):
+        super().update_record_on_episode_finish(i, record)
         write_sar_log(
             record['obs_sars'],
             os.path.join('./data', 'dagger'),  # temporarily hard-coded
             record['episode_reward'],
             'obs')
+        record['obs_sars'] = []
 
     def update_record_on_action(
             self,
             action: int,
-            observation: np.array,
-            reward: int,
             done: bool,
-            record: dict):
+            observation: np.array,
+            record: dict,
+            reward: int):
         t_obs_idx = self.replay_buffer.store_frame(observation)
 
         r_obs = self.replay_buffer.encode_recent_observation()[
