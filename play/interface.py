@@ -45,8 +45,9 @@ class PlayInterface:
         if not feature_params or not solver_params:
             source_path = os.path.join(self.path.solve_dir, '*.npz')
             paths = glob.iglob(source_path)
-            self.parameters = ['.'.join(os.path.basename(path).split('.')[:-1])
-                              for path in paths]
+            # consider files that use all training episodes, by default
+            self.parameters = ['.'.join(os.path.basename(path).split('.')[:-1])\
+                               .split('-')[0] for path in paths if '-1' in path]
             if not self.parameters:
                 raise UserWarning('No solved models found. Did you forget to run `solve`?')
         else:
@@ -64,6 +65,8 @@ class PlayInterface:
 
     def init_record_for_param(self, record: dict, feature_param: str, solver_param: str) -> dict:
         """Initialize record for given parameter."""
+        record['feature_param'] = feature_param
+        record['solver_param'] = solver_param
         record['episode_rewards'] = episode_rewards = []
         record['total_rewards'].append((feature_param, solver_param, episode_rewards))
         record['best_mean_reward'] = 0

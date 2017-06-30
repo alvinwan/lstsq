@@ -6,6 +6,28 @@ import glob
 from collections import deque
 import gym
 from gym import spaces
+from scipy.sparse.linalg import svds
+from sklearn.utils.extmath import svd_flip
+
+
+class PCA:
+
+    def __init__(self, n_components: int=20):
+        self.n_components = n_components
+        self.V = None
+
+    def fit(self, X: np.array):
+        """Ripped this from SVD source.
+
+        Just removed checks and unnecessary array copying
+        """
+        X = X - np.mean(X, axis=0)
+        U, S, V = svds(X, k=self.n_components)
+        U, V = svd_flip(U, V)
+        self.V = V
+
+    def transform(self, X: np.array):
+        return X.dot(self.V)
 
 
 def one_hot(Y: np.array) -> np.array:

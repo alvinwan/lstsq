@@ -43,11 +43,11 @@ class DaggerPlay(PlayInterface):
 
     def update_record_on_episode_finish(self, i: int, record: dict):
         super().update_record_on_episode_finish(i, record)
+        print(' * Episode finished, writing dagger results.', record['episode_reward'], len(record['obs_sars']))
         write_sar_log(
             record['obs_sars'],
-            os.path.join('./data', 'dagger'),  # temporarily hard-coded
-            record['episode_reward'],
-            'obs')
+            os.path.join('./data', 'dagger', record['feature_param']),  # temporarily hard-coded
+            record['episode_reward'])
         record['obs_sars'] = []
 
     def update_record_on_action(
@@ -62,7 +62,10 @@ class DaggerPlay(PlayInterface):
         r_obs = self.replay_buffer.encode_recent_observation()[
             np.newaxis, ...]
         action = self.atari.get_action(r_obs, self.network)
-        record['obs_sars'].append((observation, action, reward))
+        record['obs_sars'].append(np.hstack(
+            (observation.reshape((1, -1)),
+             np.array([action]).reshape((1, 1)),
+             np.array([reward]).reshape((1, 1)))))
         self.replay_buffer.store_effect(t_obs_idx, action, reward, done)
 
 
@@ -83,12 +86,12 @@ def sample_n_unique(sampling_f, n):
     return res
 
 
-def write_sar_log(sars: List, logdir: str, episode_reward: int, name: str):
+def write_sar_log(sars: List, logdir: str, episode_reward: int, name: str=''):
     """Write state-action-rewards to a log file."""
     os.makedirs(logdir, exist_ok=True)
     np.savez_compressed(
         os.path.join(
-            logdir, '%s_%s_%s' % (
+            logdir, '%s_%s%s' % (
                 str(time.time())[-5:], episode_reward, name)), np.vstack(sars))
 
 

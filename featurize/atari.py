@@ -2,8 +2,9 @@ from .interface import FeaturizeInterface
 from path import Path
 
 import numpy as np
-import tensorflow as tf
-import tensorflow.contrib.layers as layers
+
+
+# moved tensorflow imports into functions to avoid tensorflow ipmort issues
 
 
 class AtariConv3(FeaturizeInterface):
@@ -18,6 +19,8 @@ class AtariConv3(FeaturizeInterface):
         self.frame_history_len = frame_history_len
         self.session = get_session()
 
+        import tensorflow as tf
+
         # initialize placeholders
         self.obs_t_ph = tf.placeholder(
             tf.uint8, [None] + list(self.get_input_shape()))
@@ -30,10 +33,10 @@ class AtariConv3(FeaturizeInterface):
         """Use neural network to find lower dimensional representation."""
         raise NotImplementedError()
 
-    def get_action(self, X: np.array, network):
+    def get_action(self, X: np.array, network) -> int:
         curr_q_eval = self.session.run([network], {self.obs_t_ph: X})
         action = np.argmax(curr_q_eval)
-        return action
+        return np.asscalar(action)
 
     def train(self, X: np.array, _, param: str):
         raise UserWarning('Use github.com/alvinwan/deep-q-learning to train.')
@@ -48,9 +51,11 @@ class AtariConv3(FeaturizeInterface):
 
         Looks for save_path in data/<name>-enc/
         """
+        import tensorflow as tf
         saver = tf.train.Saver()
         # path = os.path.join(self.path.encoded_dir, save_path)
-        path ='data/raw-atari-model/step-final.ckpt'
+        # path ='data/raw-atari-model-84/step-final.ckpt'
+        path = 'data/raw-atari-model/step-2640000.ckpt'
         saver.restore(self.session, path)
         print(' * Restore from', path)
         return self.network
@@ -62,6 +67,7 @@ class AtariConv3(FeaturizeInterface):
 
 
 def get_session():
+    import tensorflow as tf
     tf.reset_default_graph()
     tf_config = tf.ConfigProto(
         inter_op_parallelism_threads=1,
@@ -77,7 +83,9 @@ def get_available_gpus():
     return [x.physical_device_desc for x in local_device_protos if x.device_type == 'GPU']
 
 
-def atari_model(img_in: tf.Variable, num_actions: int, scope: str, reuse=False):
+def atari_model(img_in, num_actions: int, scope: str, reuse=False):
+    import tensorflow.contrib.layers as layers
+    import tensorflow as tf
     # as described in https://storage.googleapis.com/deepmind-data/assets/papers/DeepMindNature14236Paper.pdf
     with tf.variable_scope(scope, reuse=reuse):
         out = img_in

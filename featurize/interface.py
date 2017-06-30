@@ -35,6 +35,7 @@ class FeaturizeInterface:
     def load_model(self, param: str):
         """Load model from model dir/. Updates self."""
         filename = os.path.join(self.path.encoded_dir, '%s-model.pkl' % param)
+        print(' * [Info] Loading model', filename)
         with open(filename, 'rb') as f:
             model = pickle.load(f)
         return model
@@ -52,7 +53,7 @@ class FeaturizeInterface:
         placeholder = np.zeros((n, 1))
 
         data = np.hstack((X, Y, placeholder))
-        encoded_path = os.path.join(self.path.encoded_dir, param)
+        encoded_path = os.path.join(self.path.encoded_dir, '%s' % (param))
         np.savez_compressed(encoded_path, data)
         print(' * Wrote encoded data (%s) to %s' % (param, encoded_path))
 

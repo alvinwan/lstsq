@@ -1,5 +1,6 @@
 from .interface import FeaturizeInterface
 from sklearn.decomposition import PCA as skPCA
+from utils import PCA as cuPCA
 
 import numpy as np
 
