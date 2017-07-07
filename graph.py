@@ -28,18 +28,18 @@ def get_average_reward(path: str) -> int:
 
 random_reward = get_average_reward('./data/raw-play/random/random-1.000000.txt')
 
-# Plot average rewards as training progresses
-plt.figure()
-plt.title('Average Rewards by Featurization Technique')
-plt.xlabel('Number of episodes played')
-plt.ylabel('Average Reward')
-plot_results('./data/raw-play/random/random-1.000000.txt', 'random baseline')
-plot_results('./data/raw-play/downsample/downsample-0.400000.txt', 'human, downsample, ols')
-plot_results('./data/raw-play/pca/pca-8.000000.txt', 'human, pca, ols')
-plot_results('./data/atari-play/pca-ols/pca-45-.txt', 'atari, pca, ols')
-plot_results('./data/atari-play/downsample-ols/downsample-0.6-.txt', 'atari, downsample, ols')
-plt.legend()
-plt.savefig('./data/raw-play/averages.png')
+# # Plot average rewards as training progresses
+# plt.figure()
+# plt.title('Average Rewards by Featurization Technique')
+# plt.xlabel('Number of episodes played')
+# plt.ylabel('Average Reward')
+# plot_results('./data/raw-play/random/random-1.000000.txt', 'random baseline')
+# plot_results('./data/raw-play/downsample/downsample-0.400000.txt', 'human, downsample, ols')
+# plot_results('./data/raw-play/pca/pca-8.000000.txt', 'human, pca, ols')
+# plot_results('./data/atari-play/pca-ols/pca-45-.txt', 'atari, pca, ols')
+# plot_results('./data/atari-play/downsample-ols/downsample-0.6-.txt', 'atari, downsample, ols')
+# plt.legend()
+# plt.savefig('./data/raw-play/averages.png')
 #
 #
 # # Plot average rewards per downsample rate
@@ -85,14 +85,14 @@ plt.savefig('./data/raw-play/averages.png')
 plt.figure()
 plt.title('Average Rewards per Number Training Episodes')
 plt.xlabel('Number Training Episodes')
-plt.ylabel('Average Reward (500 episodes)')
+plt.ylabel('Average Reward (1000 episodes)')
 # ts = [1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 # average_rewards = [get_average_reward('./data/%d-episodes-play/pca/pca-8.000000.txt' % t) for t in ts]
-ts = [50, 100, 200, 300, 400, 500, 500, 600, 700, 800, 900]
-average_rewards = [get_average_reward('./data/train-episodes/human-84-d8-%d-play/pca-ols/pca-8-.txt' % t) for t in ts]
-plt.plot(ts, average_rewards, label='8')
-average_rewards = [get_average_reward('./data/train-episodes/human-84-%d-play/pca-ols/pca-20-.txt' % t) for t in ts]
-plt.plot(ts, average_rewards, label='20')
+ts = [50, 100, 200, 300, 400, 500, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 2000]
+average_rewards = [get_average_reward('./data/train-episodes/atari-d16-%d-play/pca-ols/pca-16-.txt' % t) for t in ts]
+plt.plot(ts, average_rewards, label='16')
+# average_rewards = [get_average_reward('./data/train-episodes/human-84-%d-play/pca-ols/pca-20-.txt' % t) for t in ts]
+# plt.plot(ts, average_rewards, label='20')
 plt.plot(ts, [random_reward] * len(average_rewards), label='random')
 plt.legend()
-plt.savefig('./data/raw-play/training-atari.png')
+plt.savefig('./training-atari.png')
