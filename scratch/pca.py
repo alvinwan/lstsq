@@ -12,6 +12,6 @@ XTmu = np.load(os.path.join(SAVE_DIR, 'raw-atari-xtmu-final.npy'))
 X_TX_ = XTX - 2*XTmu + mu.T.dot(mu)
 
 lambdas, vs = np.linalg.eig(X_TX_)
-for i in range(16, 20):
+for i in range(15, 20):
    range = vs[:,:i]
    np.save(os.path.join(SAVE_DIR, 'raw-atari-v%d.npy' % i), range)

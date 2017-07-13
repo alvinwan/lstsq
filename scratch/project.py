@@ -15,9 +15,13 @@ SAVE_DIR = 'raw-atari-precompute'
 P = 15
 global_xtvs = []
 global_xvtxv = np.zeros((P, P))
-global_xvty = np.zeros((P, 1))
+global_xvty = np.zeros((P, NUM_ACTIONS))
 
 V = np.load(os.path.join(SAVE_DIR, 'raw-atari-v%d.npy' % P)).astype(np.float64)
+
+#print(os.path.join(SAVE_DIR, 'raw-atari-xvty%d-final' % P), global_xvty.shape)
+#import sys
+#sys.exit(0)
 
 def run(thread_id, paths, start):
    xtvs =[]
@@ -30,9 +34,9 @@ def run(thread_id, paths, start):
       if i%4000 == 0:
          t2 = time.time()
          #if xtvs:
-         #   np.save(os.path.join(SAVE_DIR, 'raw-atari-x%d-%d-%d' % (P, thread_id, i)), np.vstack((xtvs)))
-         #np.save(os.path.join(SAVE_DIR, 'raw-atari-xtx%d-%d-%d' % (P, thread_id, i)), xvtxv)
-         np.save(os.path.join(SAVE_DIR, 'raw-atari-xty%d-%d-%d' % (P, thread_id, i)), xvty)
+         #   np.save(os.path.join(SAVE_DIR, 'raw-atari-xv%d-%d-%d' % (P, thread_id, i)), np.vstack((xtvs)))
+         #np.save(os.path.join(SAVE_DIR, 'raw-atari-xvtx%d-%d-%d' % (P, thread_id, i)), xvtxv)
+         np.save(os.path.join(SAVE_DIR, 'raw-atari-xvty%d-%d-%d' % (P, thread_id, i)), xvty)
          print('saved', i, 'in', time.time()-t2)
       full_path = os.path.join(DIR, path)
       try:
@@ -50,9 +54,9 @@ def run(thread_id, paths, start):
    print(time.time() - start)
    t2 = time.time()
    #xtv = np.vstack(xtvs)
-   #np.save(os.path.join(SAVE_DIR, 'raw-atari-x%d-%d' % (P, thread_id)), xtv)
-   #np.save(os.path.join(SAVE_DIR, 'raw-atari-xtx%d-%d' % (P, thread_id)), xvtxv)
-   np.save(os.path.join(SAVE_DIR, 'raw-atari-xty%d-%d' % (P, thread_id)), xvty)
+   #np.save(os.path.join(SAVE_DIR, 'raw-atari-xv%d-%d' % (P, thread_id)), xtv)
+   #np.save(os.path.join(SAVE_DIR, 'raw-atari-xvtx%d-%d' % (P, thread_id)), xvtxv)
+   np.save(os.path.join(SAVE_DIR, 'raw-atari-xvty%d-%d' % (P, thread_id)), xvty)
    print('saving took', time.time() - t2)
    global global_xtvs, global_xvtxv, global_xvty
    #global_xtvs.append(xtv)
@@ -81,6 +85,9 @@ def main():
    #np.save(os.path.join(SAVE_DIR, 'raw-atari-xtv%d-final' % P), global_xtv)
    #np.save(os.path.join(SAVE_DIR, 'raw-atari-xvtxv%d-final' % P), global_xvtxv)
    np.save(os.path.join(SAVE_DIR, 'raw-atari-xvty%d-final' % P), global_xvty)
+   print(global_xvty,shape)
+   print('Saved to', os.path.join(SAVE_DIR, 'raw-atari-xvty%d-final' % P))
+   import pdb;pdb.set_trace()
 
 def one_hot(Y):
     """One hot the provided list of classes."""
