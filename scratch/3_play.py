@@ -15,10 +15,21 @@ import glob
 from collections import deque
 import gym
 from gym import spaces
+import sys
 
-SAVE_DIR = 'raw-atari-precompute'
-RESULTS_DIR = 'raw-atari-play'
-P = 15
+arguments = sys.argv
+
+assert len(arguments) == 2, 'Need number of training episodes used'
+
+SAVE_DIR = 'fc5-precompute'
+RESULTS_DIR = 'fc5-play'
+# P = 15
+N = int(arguments[1])
+
+import tensorflow as tf
+session_config_kwargs = {
+    'gpu_options': tf.GPUOptions(per_process_gpu_memory_fraction=0.4)}
+
 
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env=None, noop_max=30):
@@ -67,18 +78,39 @@ env = gym.make('SpaceInvaders-v4')
 env = wrappers.Monitor(wrap_custom(env), os.path.join(RESULTS_DIR, time_id), video_callable=lambda i: i % 50 == 0)
 n_episodes = 1000
 
-V = np.load(os.path.join(SAVE_DIR, 'raw-atari-v%d.npy' % P))
-W = np.load(os.path.join(SAVE_DIR, 'raw-atari-w%d.npy' % P))
+#V = np.load(os.path.join(SAVE_DIR, 'raw-atari-v%d.npy' % P))
+# W = np.load(os.path.join(SAVE_DIR, 'fc5-w%d.npy' % P))
+W = np.load(os.path.join(SAVE_DIR, 'fc5-w-%d.npy' % N))
 
+from dqn import get_dqn
+from dqn import x_to_fc5
+from dqn import x_to_action
+dqn = get_dqn(session_config_kwargs=session_config_kwargs)
+
+print('Running!')
 episode_rewards = []
 best_mean_reward = 0
+past_timesteps = []
+average_reward = 0
 for i in range(n_episodes):
     observation = env.reset()
     while True:
         obs = observation.reshape(tuple([1] + list(observation.shape)))
-        featurized = obs.reshape((1, -1)).dot(V)
+        past_timesteps.append(obs)
+        if len(past_timesteps) > 4:
+            past_timesteps.pop(0)
+        elif len(past_timesteps) < 4:
+            continue
+        # featurized = obs.reshape((1, -1)).dot(V)
+        x = np.concatenate(past_timesteps, axis=3)
+
+        featurized = x_to_fc5(x, *dqn)
+        # import pdb; pdb.set_trace()
         action = np.argmax(featurized.dot(W))
-#        import pdb; pdb.set_trace()
+        # assert action == 0
+        # import pdb; pdb.set_trace()
+        #action = x_to_action(x, *dqn)
+
         observation, reward, done, info = env.step(action)
         if done:
             env.reset()
@@ -89,9 +121,22 @@ for i in range(n_episodes):
             break
     print(episode_reward)
     if i % 100 == 0 and i > 0:
-        print(i, 'Running average:', np.mean(env.get_episode_rewards()))
+        average_reward=  np.mean(env.get_episode_rewards())
+        print(i, 'Running average:', average_reward)
         print(i, 'Last mean reward:', np.mean(env.get_episode_rewards()[-100:]))
         print(i, 'Best mean reward:', best_mean_reward)
 
-with open(os.path.join(RESULTS_DIR, 'raw-atari-pca-%d.txt' % P)) as f:
+common_path = os.path.join(RESULTS_DIR, 'fc5-w-all.csv')
+if not os.path.exists(common_path):
+    with open(common_path, 'w') as f:
+        f.write('n,average,best mean reward')
+
+with open(common_path, 'w') as f:
+    f.write('%d,%.3f,%.3f' % (N, average_reward, best_mean_reward))
+print('Wrote to common results', common_path)
+
+# path = os.path.join(RESULTS_DIR, 'fc5-pca-%d.txt' % P)
+path = os.path.join(RESULTS_DIR, 'fc5-w-%d.npy' % N)
+with open(path, 'w') as f:
     f.write(','.join(map(str, episode_rewards)))
+print('Wrote all episode rewards to file', path)
