@@ -30,7 +30,6 @@ def one_hot(y):
 
 
 def run(thread_id, paths, start):
-    print('Thread', thread_id, 'started')
     xtx, xty = np.zeros((D,D)), np.zeros((D, N_ACTIONS))
     for i, di in enumerate(map(np.load, paths), start=start):
         if i % 100 == 0 and i > 0:
@@ -38,7 +37,8 @@ def run(thread_id, paths, start):
         x, y = di[:,:D], di[:,-2].reshape((-1, 1))
         xty += x.T.dot(one_hot(y))
         xtx += x.T.dot(x)
-    print('Thread', thread_id, 'finished')
+    if len(paths) > 0:
+        print('Thread', thread_id, 'finished')
     global global_xtx , global_xty
     global_xtx += xtx
     global_xty += xty
@@ -57,11 +57,11 @@ def xtx_and_xty(
     if idx_dagger_run == 0:
         paths = list(glob.glob('%s/*.npy' % atari_gameplay_dir))[:n_atari]
         print('Num normal episodes used for training:', n_atari)
-    print('Num dagger episodes use for training:', n_dagger)
-    print('Dagger run training index:', idx_dagger_run)
-    dagger_paths = dp = list(glob.glob('%s/%d/*.npy' % (dagger_gameplay_dir, idx_dagger_run)))[:n_dagger]
-    assert len(dp) >= n_dagger, 'NOT ENOUGH DAGGER PATHS! %d' % len(dp)
-    paths += dp
+    else:
+        print('Num dagger episodes use for training:', n_dagger)
+        print('Dagger run training index:', idx_dagger_run)
+        paths = dp = list(glob.glob('%s/%d/*.npy' % (dagger_gameplay_dir, idx_dagger_run-1)))[:n_dagger]
+        assert len(dp) >= n_dagger, 'NOT ENOUGH DAGGER PATHS! %d' % len(dp)
 
     num_thread_paths = ntp = int(np.ceil(len(paths) / n_threads))
     threads = []
@@ -100,20 +100,43 @@ def w(
     print('Saved to', w_path)
 
 
-def main(n_atari=1000, n_dagger=1000, idx_dagger_run=0):
+def restore_previous_xtx_and_xty(
+        idx_dagger_run,
+        save_dir='spaceinvaders-precompute'):
+    idx = idx_dagger_run - 1
+    xtx_filename = 'xtx-%d.npy' % idx
+    xty_filename = 'xty-%d.npy' % idx
+    w_filename = 'w-%d.npy' % idx
+
+    global global_xtx, global_xty
+    global_xtx = np.load(os.path.join(save_dir, xtx_filename))
+    global_xty = np.load(os.path.join(save_dir, xty_filename))
+
+
+def main(
+        n_atari=1000,
+        n_dagger=1000,
+        idx_dagger_run=0,
+        save_dir='spaceinvaders-precompute'):
+    if idx_dagger_run > 0:
+        restore_previous_xtx_and_xty(idx_dagger_run, save_dir=save_dir)
+
     xtx_filename = 'xtx-%d.npy' % idx_dagger_run
     xty_filename = 'xty-%d.npy' % idx_dagger_run
     w_filename = 'w-%d.npy' % idx_dagger_run
 
     xtx_and_xty(
+        idx_dagger_run=idx_dagger_run,
         n_atari=n_atari,
         n_dagger=n_dagger,
         xtx_filename=xtx_filename,
-        xty_filename=xty_filename)
+        xty_filename=xty_filename,
+        save_dir=save_dir)
     w(
         xtx_filename=xtx_filename,
         xty_filename=xty_filename,
-        w_filename=w_filename)
+        w_filename=w_filename,
+        save_dir=save_dir)
 
 
 if __name__ == '__main__':
@@ -122,7 +145,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_atari', type=int, help='Number of atari episodes to train on', default=None)
     parser.add_argument('--n_dagger', type=int, help='Number of dagger episodes to train on', default=None)
     args = parser.parse_args()
-
+    print('Index of dagger run:', args.i)
     if args.n_atari is not None and args.n_dagger is not None:
         main(
             idx_dagger_run=args.i,
