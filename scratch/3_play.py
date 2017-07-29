@@ -131,12 +131,12 @@ if not os.path.exists(common_path):
     with open(common_path, 'w') as f:
         f.write('n,average,best mean reward')
 
-with open(common_path, 'w') as f:
+with open(common_path, 'a') as f:
     f.write('%d,%.3f,%.3f' % (N, average_reward, best_mean_reward))
 print('Wrote to common results', common_path)
 
 # path = os.path.join(RESULTS_DIR, 'fc5-pca-%d.txt' % P)
-path = os.path.join(RESULTS_DIR, 'fc5-w-%d.npy' % N)
+path = os.path.join(RESULTS_DIR, 'fc5-play-%d.txt' % N)
 with open(path, 'w') as f:
     f.write(','.join(map(str, episode_rewards)))
 print('Wrote all episode rewards to file', path)

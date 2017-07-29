@@ -21,13 +21,13 @@ def atari_model(img_in, num_actions, scope, reuse=False):
             # original architecture
             out = layers.convolution2d(out, num_outputs=32, kernel_size=8, stride=4, activation_fn=tf.nn.relu)
             out = layers.convolution2d(out, num_outputs=64, kernel_size=4, stride=2, activation_fn=tf.nn.relu)
-            out = layers.convolution2d(out, num_outputs=64, kernel_size=3, stride=1, activation_fn=tf.nn.relu)
+            conv3 = out = layers.convolution2d(out, num_outputs=64, kernel_size=3, stride=1, activation_fn=tf.nn.relu)
         out = layers.flatten(out)
         with tf.variable_scope("action_value"):
             fc = out = layers.fully_connected(out, num_outputs=512,         activation_fn=tf.nn.relu)
             out = layers.fully_connected(out, num_outputs=num_actions, activation_fn=None)
 
-        return fc, out
+        return fc, conv3, out
 
 def set_global_seeds(i):
     try:
@@ -109,16 +109,20 @@ def get_dqn(save_path='/data/alvin/deep-q-learning/checkpoints/561527/step-final
     obs_t_float = tf.cast(obs_t_ph, tf.float32) / 255.0
 
     global_vars = tf.GraphKeys.GLOBAL_VARIABLES
-    fc, out = atari_model(obs_t_float, num_actions, scope='q_func')
+    fc, conv3, out = atari_model(obs_t_float, num_actions, scope='q_func')
 
     saver = tf.train.Saver()
     saver.restore(session, save_path)
-    return session, fc, out, obs_t_ph
+    return session, fc, conv3, out, obs_t_ph
 
 
-def x_to_fc5(x, session, fc, out, obs_t_ph):
+def x_to_fc5(x, session, fc, conv3, out, obs_t_ph):
     return session.run([fc], {obs_t_ph: x})[0]
 
 
-def x_to_action(x, session, fc, out, obs_t_ph):
+def x_to_conv3(x, session, fc, conv3, out, obs_t_ph):
+    return session.run([conv3], {obs_t_ph: x})[0]
+
+
+def x_to_action(x, session, fc, conv3, out, obs_t_ph):
     return np.argmax(session.run([out], {obs_t_ph: x})[0])
