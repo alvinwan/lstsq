@@ -1,8 +1,8 @@
 """
 
 xtx.py 1000 : Run on 1000 regular atari episodes
-xtx.py 1000 9000 dagger: Run on 1000 regular, 9000 dagger episodes
-xtx.py 1000 1000 dagger2 <i>: Run dagger2 for iteration i
+xtx.py 1000 9000 : Run on 1000 regular, 9000 dagger episodes
+xtx.py restore <xtx path> <xty path> : Initiatlize xtx, xty to paths
 """
 
 import os
@@ -19,12 +19,12 @@ import sys
 arguments = sys.argv
 
 assert len(arguments) >= 2, 'Requires number of episodes to use'
-assert len(arguments) < 3 or 'dagger' in arguments or 'dagger2' in arguments, 'Gotta add the "dagger" or "dagger2" keyword bruh! i.e., bash script.sh 1000 9000 dagger, currently: %s' % ' '.join(arguments)
 
+assert len(arguments) < 3 or 'dagger' in arguments, 'Gotta add the "dagger" keyword bruh! i.e., bash script.sh 1000 9000 dagger, currently: %s' % ' '.join(arguments)
 
 DAGGER = 'dagger' in arguments
 DAGGER_DIR = 'spaceinvaders-dagger'
-DAGGER2 = 'dagger2' in arguments
+DAGGER2_DIR = 'spaceinvaders-dagger2'
 N_THREADS = 48
 N_ACTIONS = 6
 N = int(arguments[1])
@@ -35,8 +35,15 @@ LAYER = 'prelu'
 DIR = 'spaceinvaders-%s' % LAYER
 SAVE_DIR = 'spaceinvaders-precompute'
 
-global_xtx = np.zeros((D, D))
-global_xty = np.zeros((D, N_ACTIONS))
+restore = None
+
+iterator = iter(arguments)
+if 'restore' in iterator:
+    global_xtx = np.load(next(iterator))
+    global_xty = np.load(next(iterator))
+else:
+    global_xtx = np.zeros((D, D))
+    global_xty = np.zeros((D, N_ACTIONS))
 
 XTX_THREAD = LAYER + '-xtx-%d-%d'
 XTX_FINAL = LAYER + '-xtx-%d-final'
@@ -44,15 +51,8 @@ XTX_FINAL = LAYER + '-xtx-%d-final'
 XTY_THREAD = LAYER + '-xty-%d-%d'
 XTY_FINAL = LAYER + '-xty-%d-final'
 
-if DAGGER2:
-    DAGGER_DIR = 'spaceinvaders-dagger2'
-    SAVE_DIR = 'spaceinvaders-dagger2-precompute'
-    DAGGER2_IDX = int(arguments[4])
-
-if DAGGER or DAGGER2:
+if DAGGER:
     suffix = '-dagger-%d' % N_d
-    if DAGGER2:
-        suffix += '-' + str(DAGGER2_IDX)
     XTX_THREAD += suffix
     XTX_FINAL += suffix
     XTY_THREAD += suffix
@@ -91,12 +91,14 @@ def main():
     paths = list(os.listdir(DIR))[:N]
     print('Num normal episodes used for training:', N)
     if DAGGER:
-        print('Num dagger episodes used for training:', N_d)
+        print('Num dagger episodes use for training:', N_d)
         print('DAGGAH!!')
-        dagger_paths = list(glob.glob(DAGGER_DIR + '/*/*.npy'))[:N]
+        dagger_paths = list(glob.glob('spaceinvaders-dagger/*/*.npy'))[:N]
         if len(dagger_paths) < N:
             print('NOT ENOUGH DAGGER PATHS!', len(dagger_paths))
         paths += dagger_paths
+    if DAGGER_NEW:
+
     n_paths_per_thread = int(np.ceil(len(paths) / N_THREADS))
     print('Number threads:', N_THREADS)
     print('Paths per thread:', n_paths_per_thread)
