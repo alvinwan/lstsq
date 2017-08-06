@@ -61,7 +61,8 @@ def xtx_and_xty(
         print('Num dagger episodes use for training:', n_dagger)
         print('Dagger run training index:', idx_dagger_run)
         paths = dp = list(glob.glob('%s/%d/*.npy' % (dagger_gameplay_dir, idx_dagger_run-1)))[:n_dagger]
-        assert len(dp) >= n_dagger, 'NOT ENOUGH DAGGER PATHS! %d' % len(dp)
+        if len(dp) < n_dagger:
+            print('NOT ENOUGH DAGGER PATHS! %d' % len(dp))
 
     num_thread_paths = ntp = int(np.ceil(len(paths) / n_threads))
     threads = []
