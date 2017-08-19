@@ -34,8 +34,8 @@ def run(thread_id, paths, start):
     for i, di in enumerate(map(np.load, paths), start=start):
         if i % 100 == 0 and i > 0:
             print(i)
-        x, y = di[:,:D], di[:,-2].reshape((-1, 1))
-        xty += x.T.dot(one_hot(y))
+        x, y = di[:, :D], di[:, D:D+N_ACTIONS]
+        xty += x.T.dot(y)
         xtx += x.T.dot(x)
     if len(paths) > 0:
         print('Thread', thread_id, 'finished')
