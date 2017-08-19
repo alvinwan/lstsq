@@ -77,6 +77,8 @@ class LoggingPreventStuckPlayer(PreventStuckPlayer):
             'Once you initialize the player, assign player.SAVE_DIR = ...'
         if not isinstance(stat, list):
             stat = [stat]
+        self.gameplay_raw = []
+        self.gameplay_fc0 = []
 
         while True:
             s = self.current_state()
@@ -303,7 +305,7 @@ if __name__ == '__main__':
             model=Model(),
             session_init=get_model_loader(args.load),
             input_names=['state'],
-            output_names=['fc-pi/output', 'fc0/output'])
+            output_names=['policy', 'fc0/output'])
         if args.task == 'play':
             # play_model(cfg, get_player(viz=0.01))
             player = get_player()
