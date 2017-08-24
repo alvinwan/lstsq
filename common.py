@@ -30,14 +30,12 @@ def play_one_episode(player, func, verbose=False):
         spc = player.get_action_space()
         out = func([[s]])
         act = out[0][0].argmax()
-        conv3 = out[1][0]
-        import pdb; pdb.set_trace()
-        conv3_jl = transformer.fit_transform(conv3)
+        conv3 = np.ravel(out[1][0])
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, conv3_jl, act
+        return act, conv3, act
     return np.mean(player.play_one_episode(f))
 
 
@@ -50,14 +48,14 @@ def play_one_dagger_episode(player, func, verbose=False, N=200, N_d=200, idx=0):
     def f(s):
         spc = player.get_action_space()
         out = func([[s]])
-        fc0 = out[1][0]
-        act = fc0.T.dot(w).argmax()
+        conv3 = np.ravel(out[1][0])
+        act = conv3.T.dot(w).argmax()
         exp_act = out[0][0].argmax()
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, fc0, exp_act
+        return act, conv3, exp_act
     return np.mean(player.play_one_episode(f))
 
 

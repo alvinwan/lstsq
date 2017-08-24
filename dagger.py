@@ -18,7 +18,7 @@ import sys
 # XTX & XTY #
 #############
 
-D = 512
+D = 6400
 N_ACTIONS = 6
 
 global_xtx = np.zeros((D, D))
