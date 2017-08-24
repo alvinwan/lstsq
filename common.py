@@ -20,17 +20,28 @@ LAYER = 'prelu'
 DAGGER = os.environ.get('DAGGER', False) == 'True'
 
 
+# temp
+d = 8
+n_filters = 10
+filters = np.random.normal(size=(n_filters, d, d))
+
+
 def play_one_episode(player, func, verbose=False):
     def f(s):
         spc = player.get_action_space()
         out = func([[s]])
         act = out[0][0].argmax()
-        fc0 = out[1][0]
+        state = out[1][0]
+
+        convolved = []
+        for filter_ in filters:
+            convolved.append(np.convolve2d(state, filter_, mode='valid'))
+        # ????????
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, fc0, act
+        return act, convolved, act
     return np.mean(player.play_one_episode(f))
 
 
