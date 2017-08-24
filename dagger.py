@@ -14,6 +14,12 @@ import glob
 import argparse
 import sys
 
+LAYER_NAME = 'conv3'
+DEFAULT_DAGGER_DIR = '%s-dagger-spaceinvaders' % LAYER_NAME
+DEFAULT_ATARI_DIR = '%s-atari-spaceinvaders' % LAYER_NAME
+DEFAULT_SAVE_DIR = '%s-spaceinvaders-precompute' % LAYER_NAME
+
+
 #############
 # XTX & XTY #
 #############
@@ -46,9 +52,9 @@ def run(thread_id, paths, start):
 
 def xtx_and_xty(
         idx_dagger_run=0,
-        dagger_gameplay_dir='prelu-dagger-spaceinvaders',
-        atari_gameplay_dir='prelu-atari-spaceinvaders',
-        save_dir='spaceinvaders-precompute',
+        dagger_gameplay_dir=DEFAULT_DAGGER_DIR,
+        atari_gameplay_dir=DEFAULT_ATARI_DIR,
+        save_dir=DEFAULT_SAVE_DIR,
         n_threads=48,
         n_atari=1000,
         n_dagger=1000,
@@ -87,7 +93,7 @@ def xtx_and_xty(
 
 
 def w(
-    save_dir='spaceinvaders-precompute',
+    save_dir=DEFAULT_SAVE_DIR,
     xtx_filename='xtx',
     xty_filename='xty',
     w_filename='w'):
@@ -103,7 +109,7 @@ def w(
 
 def restore_previous_xtx_and_xty(
         idx_dagger_run,
-        save_dir='spaceinvaders-precompute'):
+        save_dir=DEFAULT_SAVE_DIR):
     idx = idx_dagger_run - 1
     xtx_filename = 'xtx-%d.npy' % idx
     xty_filename = 'xty-%d.npy' % idx
@@ -118,7 +124,7 @@ def main(
         n_atari=1000,
         n_dagger=1000,
         idx_dagger_run=0,
-        save_dir='spaceinvaders-precompute'):
+        save_dir=DEFAULT_SAVE_DIR):
     if idx_dagger_run > 0:
         restore_previous_xtx_and_xty(idx_dagger_run, save_dir=save_dir)
 

@@ -17,7 +17,7 @@ from tensorpack.utils.concurrency import *
 from tensorpack.utils.stats import *
 from sklearn import random_projection
 
-LAYER = 'prelu'
+LAYER = 'conv3'
 DAGGER = os.environ.get('DAGGER', False) == 'True'
 
 
@@ -43,7 +43,7 @@ def play_one_dagger_episode(player, func, verbose=False, N=200, N_d=200, idx=0):
     #path = '/data/alvin/lstsq/data/spaceinvaders-precompute/%s-w-%d'
     #if DAGGER:
     #    path += ('-dagger-%d' % N_d)
-    path = 'spaceinvaders-precompute/w-%d' % idx
+    path = '%s-spaceinvaders-precompute/w-%d' % (LAYER, idx)
     w = np.load(path + '.npy')
     def f(s):
         spc = player.get_action_space()

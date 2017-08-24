@@ -56,6 +56,7 @@ EVALUATE_PROC = min(multiprocessing.cpu_count() // 2, 20)
 
 NUM_ACTIONS = None
 ENV_NAME = None
+LAYER_NAME = 'conv3'
 
 
 class LoggingPreventStuckPlayer(PreventStuckPlayer):
@@ -78,23 +79,23 @@ class LoggingPreventStuckPlayer(PreventStuckPlayer):
         if not isinstance(stat, list):
             stat = [stat]
         self.gameplay_raw = []
-        self.gameplay_fc0 = []
+        self.gameplay_conv3 = []
 
         while True:
             s = self.current_state()
-            act, fc0, exp_act = func(s)
+            act, conv3, exp_act = func(s)
             r, isOver = self.action(act)
-            self.gameplay_fc0.append(np.hstack((fc0, exp_act, r)))
+            self.gameplay_conv3.append(np.hstack((conv3, exp_act, r)))
             if isOver:
                 s = [self.stats[k] for k in stat]
                 self.reset_stat()
                 time_id = str(time.time())[-5:]
                 os.makedirs(self.SAVE_DIR, exist_ok=True)
-                np.save(os.path.join(self.SAVE_DIR, '%s_prelu' % time_id),
-                        np.vstack(self.gameplay_fc0))
+                np.save(os.path.join(self.SAVE_DIR, '%s_%s' % (time_id, LAYER_NAME)),
+                        np.vstack(self.gameplay_conv3))
                 score = s if len(s) > 1 else s[0]
                 self.gameplay_raw = []
-                self.gameplay_fc0 = []
+                self.gameplay_conv3 = []
                 return score
 
 
@@ -309,12 +310,12 @@ if __name__ == '__main__':
         if args.task == 'play':
             # play_model(cfg, get_player(viz=0.01))
             player = get_player()
-            player.SAVE_DIR = 'prelu-atari-%s' % ENV_NAME
+            player.SAVE_DIR = '%s-atari-%s' % (LAYER_NAME, ENV_NAME)
             play_model(cfg, player, args.N_p)
         elif args.task == 'play-ls':
             player = get_player()
             DAGGER = os.environ.get('DAGGER', False) == 'True'
-            player.SAVE_DIR = 'prelu-dagger-%s/%d' % (ENV_NAME, args.N)
+            player.SAVE_DIR = '%s-dagger-%s/%d' % (LAYER_NAME, ENV_NAME, args.N)
             if DAGGER:
                   print('Playing forward with DAGGER-trained LS agent')
                   player.SAVE_DIR += '-' + str(args.N_d)
