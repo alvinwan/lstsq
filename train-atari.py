@@ -305,7 +305,7 @@ if __name__ == '__main__':
             model=Model(),
             session_init=get_model_loader(args.load),
             input_names=['state'],
-            output_names=['policy', 'fc0/output'])
+            output_names=['policy', 'conv3/output'])
         if args.task == 'play':
             # play_model(cfg, get_player(viz=0.01))
             player = get_player()

@@ -15,9 +15,14 @@ import os.path
 from tensorpack import *
 from tensorpack.utils.concurrency import *
 from tensorpack.utils.stats import *
+from sklearn import random_projection
 
 LAYER = 'prelu'
 DAGGER = os.environ.get('DAGGER', False) == 'True'
+
+
+# temp: create transformer
+transformer = random_projection.GaussianRandomProjection()
 
 
 def play_one_episode(player, func, verbose=False):
@@ -25,12 +30,14 @@ def play_one_episode(player, func, verbose=False):
         spc = player.get_action_space()
         out = func([[s]])
         act = out[0][0].argmax()
-        fc0 = out[1][0]
+        conv3 = out[1][0]
+        import pdb; pdb.set_trace()
+        conv3_jl = transformer.fit_transform(conv3)
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, fc0, act
+        return act, conv3_jl, act
     return np.mean(player.play_one_episode(f))
 
 
