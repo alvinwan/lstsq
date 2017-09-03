@@ -57,6 +57,8 @@ EVALUATE_PROC = min(multiprocessing.cpu_count() // 2, 20)
 NUM_ACTIONS = None
 ENV_NAME = None
 
+LAYER = 'state'
+
 
 class LoggingPreventStuckPlayer(PreventStuckPlayer):
 
@@ -307,12 +309,12 @@ if __name__ == '__main__':
         if args.task == 'play':
             # play_model(cfg, get_player(viz=0.01))
             player = get_player()
-            player.SAVE_DIR = 'prelu-atari-%s' % ENV_NAME
+            player.SAVE_DIR = '%s-atari-%s' % (LAYER, ENV_NAME)
             play_model(cfg, player, args.N_p)
         elif args.task == 'play-ls':
             player = get_player()
             DAGGER = os.environ.get('DAGGER', False) == 'True'
-            player.SAVE_DIR = 'prelu-dagger-%s/%d' % (ENV_NAME, args.N)
+            player.SAVE_DIR = '%s-dagger-%s/%d' % (LAYER, ENV_NAME, args.N)
             if DAGGER:
                   print('Playing forward with DAGGER-trained LS agent')
                   player.SAVE_DIR += '-' + str(args.N_d)
