@@ -22,15 +22,23 @@ DAGGER = os.environ.get('DAGGER', False) == 'True'
 
 def play_one_episode(player, func, verbose=False):
     def f(s):
+        """
+        Note that the state has frames from the past. I checked that the last
+        three channels are the current frame, by collecting several states and
+        comparing groups of channels.
+
+        :param s: output of neural network
+        :return:
+        """
         spc = player.get_action_space()
         out = func([[s]])
         act = out[0][0].argmax()
-        fc0 = out[1][0]
+        state = np.ravel(out[1][0][:, :, -3:])
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, fc0, act
+        return act, state, act
     return np.mean(player.play_one_episode(f))
 
 
@@ -43,14 +51,14 @@ def play_one_dagger_episode(player, func, verbose=False, N=200, N_d=200, idx=0):
     def f(s):
         spc = player.get_action_space()
         out = func([[s]])
-        fc0 = out[1][0]
-        act = fc0.T.dot(w).argmax()
+        state = out[1][0][:, :, -3:]
+        act = state.T.dot(w).argmax()
         exp_act = out[0][0].argmax()
         if random.random() < 0.001:
             act = spc.sample()
         if verbose:
             print(act)
-        return act, fc0, exp_act
+        return act, state, exp_act
     return np.mean(player.play_one_episode(f))
 
 

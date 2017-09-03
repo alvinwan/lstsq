@@ -77,24 +77,22 @@ class LoggingPreventStuckPlayer(PreventStuckPlayer):
             'Once you initialize the player, assign player.SAVE_DIR = ...'
         if not isinstance(stat, list):
             stat = [stat]
-        self.gameplay_raw = []
-        self.gameplay_fc0 = []
+        self.gameplay_state = []
 
         while True:
             s = self.current_state()
-            act, fc0, exp_act = func(s)
+            act, state, exp_act = func(s)
             r, isOver = self.action(act)
-            self.gameplay_fc0.append(np.hstack((fc0, exp_act, r)))
+            self.gameplay_state.append(np.hstack((state, exp_act, r)))
             if isOver:
                 s = [self.stats[k] for k in stat]
                 self.reset_stat()
                 time_id = str(time.time())[-5:]
                 os.makedirs(self.SAVE_DIR, exist_ok=True)
-                np.save(os.path.join(self.SAVE_DIR, '%s_prelu' % time_id),
-                        np.vstack(self.gameplay_fc0))
+                np.save(os.path.join(self.SAVE_DIR, '%s_state' % time_id),
+                        np.vstack(self.gameplay_state))
                 score = s if len(s) > 1 else s[0]
-                self.gameplay_raw = []
-                self.gameplay_fc0 = []
+                self.gameplay_state = []
                 return score
 
 
@@ -305,7 +303,7 @@ if __name__ == '__main__':
             model=Model(),
             session_init=get_model_loader(args.load),
             input_names=['state'],
-            output_names=['policy', 'fc0/output'])
+            output_names=['policy', 'state'])
         if args.task == 'play':
             # play_model(cfg, get_player(viz=0.01))
             player = get_player()
