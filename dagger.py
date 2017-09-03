@@ -24,6 +24,7 @@ N_ACTIONS = 6
 global_xtx = np.zeros((D, D))
 global_xty = np.zeros((D, N_ACTIONS))
 
+
 def one_hot(y):
     Y = np.eye(N_ACTIONS)[y.astype(int)]
     return Y.reshape((Y.shape[0], Y.shape[2]))

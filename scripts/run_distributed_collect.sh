@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
+if [ "$#" -ne 1 ]; then
+    echo "Need name of game!"
+    exit
+fi
+
 for i in `seq 0 20`
 do
-    tmux new-session -d -s "collect_$i" /data/alvin/lstsq/run_collect.sh
+    tmux new-session -d -s "collect_$1_$i" /data/alvin/lstsq/scripts/run_collect.sh $1
 done
 tmux ls
