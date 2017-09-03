@@ -5,8 +5,8 @@ if [ "$#" -ne 1 ]; then
     exit
 fi
 
-for i in `seq 0 20`
+for i in `seq 0 4`
 do
     tmux new-session -d -s "collect_$1_$i" /data/alvin/lstsq/scripts/run_collect.sh $1
 done
-tmux ls
+watch tmux ls
