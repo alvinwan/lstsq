@@ -42,7 +42,7 @@ def main():
     args = parser.parse_args()
 
     fmt = '%s-atari-%s/*_state.npy' % (args.layer, args.envid)
-    raw_data = [np.load(path) for path in glob.iglob(fmt)]
+    raw_data = [np.load(path) for path in sorted(glob.iglob(fmt))]
     states = [raw[:, :-2].reshape(-1, 84, 84, 3) for raw in raw_data]
     states = [np.transpose(state, axes=(0, 3, 1, 2)) for state in states]
     data = np.vstack(states)
@@ -57,8 +57,11 @@ def main():
         patch_size=patch_size,
         pool_size=pool_size
     )
-    out_path = '%s-atari-%s/X_%d.npy' % len(raw_data)
-    np.save(out_path, out)
+    out_path_x = '%s-atari-%s/X_%d.npy' % (args.layer, args.envid, len(raw_data))
+    np.save(out_path_x, out)
+
+    out_path_y = '%s-atari-%s/Y_%d.npy' % (args.layer, args.envid, len(raw_data))
+    np.save(out_path_y, np.vstack([state[:, :-2] for state in states]))
 
 
 if __name__ == '__main__':
