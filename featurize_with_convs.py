@@ -9,7 +9,7 @@ from pictureweb.pictureweb.conv._conv import _conv_tf
 from pictureweb.pictureweb.conv.filter_gen import make_empirical_filter_gen_no_mmap
 
 n = 90
-batch_feature_size = 512
+batch_feature_size = 64
 num_feature_batches = 8
 data_batch_size = 100
 patch_size = 10
@@ -44,6 +44,7 @@ def main():
     fmt = '%s-atari-%s/*_state.npy' % (args.layer, args.envid)
     raw_data = [np.load(path) for path in glob.iglob(fmt)]
     states = [raw[:, :-2].reshape(-1, 84, 84, 3) for raw in raw_data]
+    states = [np.transpose(state, axes=(0, 3, 1, 2)) for state in states]
     data = np.vstack(states)
     filter_gen = make_empirical_filter_gen_no_mmap(
         grab_patches(data, patch_size=patch_size))
@@ -56,6 +57,8 @@ def main():
         patch_size=patch_size,
         pool_size=pool_size
     )
+    out_path = '%s-atari-%s/X_%d.npy' % len(raw_data)
+    np.save(out_path, out)
 
 
 if __name__ == '__main__':
