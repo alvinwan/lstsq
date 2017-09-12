@@ -65,17 +65,31 @@ def featurize(layer, envid):
         patch_size=patch_size,
         pool_size=pool_size
     )
-    out_path_x = '%s-atari-%s/X_%d.npy' % (layer, envid, len(raw_data))
+    out_path_x = '%s-atari-%s/X_%d_conv.npy' % (layer, envid, len(raw_data))
     np.save(out_path_x, out)
 
-    out_path_y = '%s-atari-%s/Y_%d.npy' % (layer, envid, len(raw_data))
+    out_path_y = '%s-atari-%s/Y_%d_conv.npy' % (layer, envid, len(raw_data))
     np.save(out_path_y, np.vstack([raw[:, -2][:, None] for raw in raw_data]))
 
 
-def train(N=100):
+def bundle(layer, envid, N=100):
+    """Bundle up raw pixels--only works for small N, else use LS in dagger.py"""
+    fmt = '%s-atari-%s/*_state.npy' % (layer, envid)
+    raw_data = [np.load(path) for path in sorted(glob.iglob(fmt))]
+    states = [raw[:, :-2].reshape(-1, 84, 84, 3) for raw in raw_data]
+    states = [np.transpose(state, axes=(0, 3, 1, 2)) for state in states]
+    X = np.vstack(states)
+    y = np.vstack([raw[:, -2][:, None] for raw in raw_data])
+    out_path_x = '%s-atari-%s/X_%d_raw.npy' % (layer, envid, len(raw_data))
+    np.save(out_path_x, X)
+    out_path_y = '%s-atari-%s/Y_%d.npy' % (layer, envid, len(raw_data))
+    np.save(out_path_y, y)
+
+
+def train(N=100, featurization='conv'):
     """Run rols. Print accuracy"""
-    X = np.load('state-atari-SpaceInvaders-v0/X_%d.npy' % N)
-    Y = np.load('state-atari-SpaceInvaders-v0/Y_%d.npy' % N)
+    X = np.load('state-atari-SpaceInvaders-v0/X_%d_%s.npy' % (N, featurization))
+    Y = np.load('state-atari-SpaceInvaders-v0/Y_%d_%s.npy' % (N, featurization))
 
     Y_oh = np.eye(6)[np.ravel(Y.astype(int))]
     X = X.reshape((X.shape[0], -1))
@@ -83,7 +97,7 @@ def train(N=100):
 
     print('Solving for w...')
     w = solve(X.T.dot(X) + 1 * np.eye(X.shape[1]), X.T.dot(Y_oh))
-    np.save('state-atari-SpaceInvaders-v0/w_%d.npy' % N, w)
+    np.save('state-atari-SpaceInvaders-v0/w_%d_%s.npy' % (N, featurization), w)
 
     accuracy = sklearn.metrics.accuracy_score(np.argmax(X.dot(w), axis=1), Y)
     print('Accuracy:', accuracy)
@@ -92,17 +106,23 @@ def train(N=100):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', help='The function to run', choices=('featurize', 'train'))
+    parser.add_argument('command', help='The function to run',
+        choices=('featurize', 'train', 'bundle'))
     parser.add_argument(
         '--layer', help='Name of layer output from A3c', default='state')
     parser.add_argument(
         '--envid', help='ID for Atari environment', default='SpaceInvaders-v0')
+    parser.add_argument(
+        '--featurization', help='Featurization to work with', default='conv',
+        choices=('conv', 'raw'))
     args = parser.parse_args()
 
     if args.command == 'featurize':
         featurize(args.layer, args.envid)
+    elif args.command == 'bundle':
+        bundle(args.layer, args.envid)
     else:
-        train()
+        train(featurization=args.featurization)
 
 
 if __name__ == '__main__':
