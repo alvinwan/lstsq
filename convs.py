@@ -31,26 +31,10 @@ pool_size = 70
 arguments = sys.argv
 
 
-def output_shape():
-
-    data = np.random.normal(0.0, 10.0, size=(n, 84, 84, 3))
-    data = np.transpose(data, axes=(0, 3, 1, 2))
-    print(data.shape)
-
-    out_shape = conv_compute_output_shape(
-        data,
-        batch_feature_size,
-        num_feature_batches,
-        data_batch_size,
-        patch_size=patch_size,
-        pool_size=pool_size)
-    print(out_shape)
-
-
 def featurize(layer, envid):
     """Featurize using convs, filters are random patches from game"""
     fmt = '%s-atari-%s/*_state.npy' % (layer, envid)
-    raw_data = [np.load(path) for path in sorted(glob.iglob(fmt))]
+    raw_data = [np.load(path).astype('uint8') for path in sorted(glob.iglob(fmt))]
     states = [raw[:, :-2].reshape(-1, 84, 84, 3) for raw in raw_data]
     states = [np.transpose(state, axes=(0, 3, 1, 2)) for state in states]
     data = np.vstack(states)
@@ -101,6 +85,23 @@ def train(N=100, featurization='conv'):
 
     accuracy = sklearn.metrics.accuracy_score(np.argmax(X.dot(w), axis=1), Y)
     print('Accuracy:', accuracy)
+
+
+def output_shape():
+    """Use to test and verify output shape."""
+
+    data = np.random.normal(0.0, 10.0, size=(n, 84, 84, 3))
+    data = np.transpose(data, axes=(0, 3, 1, 2))
+    print(data.shape)
+
+    out_shape = conv_compute_output_shape(
+        data,
+        batch_feature_size,
+        num_feature_batches,
+        data_batch_size,
+        patch_size=patch_size,
+        pool_size=pool_size)
+    print(out_shape)
 
 
 def main():

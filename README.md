@@ -1,43 +1,10 @@
-### Code and models for Atari games in gym
+# Least Squares
 
-Implemented Multi-GPU version of the A3C algorithm in [Asynchronous Methods for Deep Reinforcement Learning](http://arxiv.org/abs/1602.01783).
+Featurizations:
+- `a3c.py` -- Uses A3C nn to featurize, can output any layer from policy to conv
+- ??
 
-Results of the same code trained on 47 different Atari games were uploaded on OpenAI Gym.
-You can see them in [my gym page](https://gym.openai.com/users/ppwwyyxx).
-Most of them are the best reproducible results on gym.
-
-### To train on an Atari game:
-
-`./train-atari.py --env Breakout-v0 --gpu 0`
-
-In each iteration it trains on a batch of 128 new states.
-The speed is about 6~10 iterations/s on 1 GPU plus 12+ CPU cores.
-With 2 TitanX + 20+ CPU cores, by setting `SIMULATOR_PROC=240, PREDICT_BATCH_SIZE=30, PREDICTOR_THREAD_PER_GPU=6`, it can improve to 16 it/s (2K images/s).
-Note that the network architecture is larger than what's used in the original paper.
-
-The pre-trained models are all trained with 4 GPUs for about 2 days.
-But on simple games like Breakout, you can get good performance within several hours.
-Also note that multi-GPU doesn't give you obvious speedup here,
-because the bottleneck in this implementation is not computation but data.
-
-Some practicical notes:
-
-1. Prefer Python 3.
-2. Occasionally, processes may not get terminated completely. It is suggested to use `systemd-run` to run any
-multiprocess Python program to get a cgroup dedicated for the task.
-3. Training with a significant slower speed (e.g. on CPU) will result in very bad score, probably because of async issues.
-
-### To test a model:
-
-Download models from [model zoo](https://goo.gl/9yIol2).
-
-Watch the agent play:
-`./train-atari.py --task play --env Breakout-v0 --load Breakout-v0.npy`
-
-Generate gym submissions:
-`./train-atari.py --task gen_submit --load Breakout-v0.npy --env Breakout-v0 --output output_dir`
-
-Models are available for the following atari environments (click to watch videos of my agent):
+Models are available for the following atari environments (click to watch videos of `tensorpack A3C` agent):
 
 | | | | |
 | - | - | - | - |
@@ -54,12 +21,3 @@ Models are available for the following atari environments (click to watch videos
 | [StarGunner](https://gym.openai.com/evaluations/eval_JB5cOJXFSS2cTQ7dXK8Iag) | [Tennis](https://gym.openai.com/evaluations/eval_gDjJD0MMS1yLm1T0hdqI4g) | [Tutankham](https://gym.openai.com/evaluations/eval_gDjJD0MMS1yLm1T0hdqI4g) | [UpNDown](https://gym.openai.com/evaluations/eval_KmkvMJkxQFSED20wFUMdIA) |
 | [VideoPinball](https://gym.openai.com/evaluations/eval_PWwzNhVFR2CxjYvEsPfT1g) | [WizardOfWor](https://gym.openai.com/evaluations/eval_1oGQhphpQhmzEMIYRrrp0A) | [Zaxxon](https://gym.openai.com/evaluations/eval_TIQ102EwTrHrOyve2RGfg) | |
 
-
-
-Note that atari game settings in gym (AtariGames-v0) are quite different from DeepMind papers, so the scores are not comparable. The most notable differences are:
-+ Each action is randomly repeated 2~4 times.
-+ Inputs are RGB instead of greyscale.
-+ An episode is limited to 10000 steps.
-+ Lost of live is not end of episode.
-
-Also see the DQN implementation [here](../DeepQNetwork)
