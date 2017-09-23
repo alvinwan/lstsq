@@ -26,7 +26,7 @@ def conv(
         patch_size=patch_size,
         pool_size=pool_size
     )
-    return data
+    return out
 
 
 def output_shape(n=90, batch_feature_size=64, num_feature_batches=8,
