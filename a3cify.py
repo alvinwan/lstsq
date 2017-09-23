@@ -4,7 +4,7 @@ from featurization.a3c import a3c_model
 import sys
 import gym
 import os
-import scipy.misc
+import cv2
 
 # parse cli
 arguments = sys.argv
@@ -30,7 +30,7 @@ raw = np.concatenate(data, axis=0)
 # resize all images to 84x84
 samples = []
 for frame in raw[:, :-2].reshape((-1,) + env.observation_space.shape):
-    samples.append(scipy.misc.imresize(frame, (84, 84), mode='nearest')[None])
+    samples.append(cv2.resize(frame, (84, 84), interpolation=cv2.INTER_LINEAR)[None])
 samples = np.concatenate(samples, axis=0)
 
 # check where model is
