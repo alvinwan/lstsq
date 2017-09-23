@@ -9,5 +9,7 @@ Featurizations:
 |------|-----------|------------|-------|-----------|----------|-------------|
 | SpaceInvaders-v0 | 399,000 | 100 | fc5 | 65% | 42% | 824 |
 | SpaceInvaders-v0 | 428,000 | 100 | prelu | 85% | 82% | 2495 |
+| Centipede-v0 | 68,844 | 1 | prelu | 81% | ~80% | ~2773 |
+| Breakout-v0 | 15,394 | 1 | prelu | 80% | ~67% | ~420 |
 
-*Above, we use 1000 episodes to gauge test time performance.
+*Above, we use 1000 episodes to gauge test time performance. Statistics with a tilde ~ indicate the experiment is currently running.
