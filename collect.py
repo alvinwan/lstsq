@@ -36,6 +36,15 @@ for i in range(N):
         if done:
             break
     time_id = str(time.time())[-5:]
-    data = np.vstack(states)
-    np.save('state-210x160-SpaceInvaders-v0/%s_%05d' % (time_id, episode_reward), data)
+    try:
+        data = np.vstack(states).astype(np.uint8)
+        np.save('state-210x160-SpaceInvaders-v0/%s_%05d' % (time_id, episode_reward), data)
+    except MemoryError:
+        batch_size = 10000
+        n, i = len(data), 0
+        while n > 0:
+            data = np.vstack(states[i*batch_size:(i+1)*batch_size]).astype(np.uint8)
+            np.save('state-210x160-SpaceInvaders-v0/%s_%05d_%d' % (time_id, episode_reward, i), data)
+            i += 1
+            n -= batch_size
     print('Reward:', episode_reward)
