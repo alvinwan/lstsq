@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from .pictureweb.pictureweb.conv.coates_ng_help import grab_patches
-from .pictureweb.pictureweb.conv._conv import conv_compute_output_shape
-from .pictureweb.pictureweb.conv._conv import _conv_tf
-from .pictureweb.pictureweb.conv.filter_gen import make_empirical_filter_gen_no_mmap
+from pictureweb.pictureweb.conv.coates_ng_help import grab_patches
+from pictureweb.pictureweb.conv._conv import conv_compute_output_shape
+from pictureweb.pictureweb.conv._conv import _conv_tf
+from pictureweb.pictureweb.conv.filter_gen import make_empirical_filter_gen_no_mmap
 
 
 def conv(
