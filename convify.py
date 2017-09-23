@@ -2,7 +2,7 @@ import numpy as np
 import glob
 from featurization.conv import conv
 import sys
-import cv2
+import scipy.misc
 
 arguments = sys.argv
 
@@ -26,7 +26,7 @@ Y = samples[:, -2]
 Xs_new = []
 X_raw = samples[:, :-2].reshape((-1, 210, 160, 3))
 for x in X_raw:
-    Xs_new.append(cv2.resize(x, (160, 160), interpolation=cv2.INTER_CUBIC)[None])
+    Xs_new.append(scipy.misc.imresize(x, (160, 160), mode='nearest')[None])
 X_new = np.concatenate(Xs_new, axis=0)
 X_new = np.transpose(X_new, axes=(0, 3, 1, 2))
 X = conv(X_new)
