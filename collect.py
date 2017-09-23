@@ -42,13 +42,17 @@ for i in range(N):
     time_id = str(time.time())[-5:]
     try:
         data = np.vstack(states).astype(np.uint8)
-        np.save('state-210x160-%s/%s_%d_%d' % (env_id, time_id, episode_reward, len(states)), data)
+        fname = 'state-210x160-%s/%s_%d_%d' % (env_id, time_id, episode_reward, len(states))
+        np.save(fname, data)
+        print(fname)
     except MemoryError:
         batch_size = 10000
         n, i = len(data), 0
         while n > 0:
             data = np.vstack(states[i*batch_size:(i+1)*batch_size]).astype(np.uint8)
-            np.save('state-210x160-%s/%s_%d_%d_%d' % (env_id, time_id, episode_reward, len(states), i), data)
+            'state-210x160-%s/%s_%d_%d_%d' % (env_id, time_id, episode_reward, len(states), i)
+            np.save(fname, data)
+            print(fname)
             i += 1
             n -= batch_size
     print('Reward:', episode_reward)
