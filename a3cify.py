@@ -1,6 +1,6 @@
 import numpy as np
 import glob
-from a3c import a3c_model
+from featurization.a3c import a3c_model
 import sys
 
 arguments = sys.argv
