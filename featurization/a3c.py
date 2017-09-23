@@ -1,4 +1,4 @@
-"""Self-contained, minimal script for featurizing any input using a3c.
+"""Minimal script for featurizing any input using a3c.
 
 Allows you to pick layer to output from. Taken from train-atari.py by Yuxin Wu.
 """
@@ -29,7 +29,24 @@ LAYERS = ('policy', 'conv0/output', 'pool0/output', 'conv1/output',
           'pool1/output', 'conv2/output', 'pool2/output', 'conv3/output',
           'fc0/output', 'prelu/output', 'fc-pi/output', 'fc-v/output')
 
-__all__ = ['a3c']
+__all__ = ['a3c', 'a3c_model']
+
+
+def a3c_model(layer='policy', load='SpaceInvaders-v0.tfmodel', num_actions=6):
+    """Provide a featurizer
+
+    :param layer: the a3c neural network layer to output
+    :param load: path to the model to load
+    :param num_actions: Number of actions available in the game
+    """
+    assert layer in LAYERS, 'Invalid layer %s. One of: %s' % (layer, LAYERS)
+    cfg = PredictConfig(
+        model=Model(num_actions=num_actions),
+        session_init=get_model_loader(load),
+        input_names=['state'],
+        output_names=[layer])
+    predfunc = OfflinePredictor(cfg)
+    return predfunc
 
 
 def a3c(state, layer='policy', load='SpaceInvaders-v0.tfmodel', num_actions=6):
@@ -40,13 +57,7 @@ def a3c(state, layer='policy', load='SpaceInvaders-v0.tfmodel', num_actions=6):
     :param load: path to the model to load
     :param num_actions: Number of actions available in the game
     """
-    assert layer in LAYERS, 'Invalid layer %s. One of: %s' % (layer, LAYERS)
-    cfg = PredictConfig(
-        model=Model(num_actions=num_actions),
-        session_init=get_model_loader(load),
-        input_names=['state'],
-        output_names=[layer, 'state'])
-    predfunc = OfflinePredictor(cfg)
+    predfunc = a3c_model(layer, load, num_actions)
     return predfunc([[state]])
 
 
