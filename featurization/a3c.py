@@ -1,4 +1,4 @@
-"""Minimal script for featurizing any input using a3c.
+"""Self-contained, minimal script for featurizing any input using a3c.
 
 Allows you to pick layer to output from. Taken from train-atari.py by Yuxin Wu.
 """
