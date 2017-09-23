@@ -8,6 +8,9 @@ from pictureweb.pictureweb.conv._conv import _conv_tf
 from pictureweb.pictureweb.conv.filter_gen import make_empirical_filter_gen_no_mmap
 
 
+__all__ = ('conv',)
+
+
 def conv(
     data, batch_feature_size=64, num_feature_batches=8,
     data_batch_size=100, patch_size=10, pool_size=150):
