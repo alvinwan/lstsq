@@ -3,6 +3,7 @@ import glob
 from featurization.conv import conv
 import sys
 import cv2
+import gym
 
 arguments = sys.argv
 
@@ -12,6 +13,8 @@ if len(arguments) > 1:
     N = int(arguments[1])
 if len(arguments) > 2:
     env_id = arguments[2]
+
+env = gym.make(env_id)
 
 data  = []
 for i, path in enumerate(list(sorted(glob.iglob('state-210x160-%s/*.npy' % env_id)))[:N]):
@@ -24,7 +27,7 @@ samples = np.concatenate(data, axis=0)
 Y = samples[:, -2]
 
 Xs_new = []
-X_raw = samples[:, :-2].reshape((-1, 210, 160, 3))
+X_raw = samples[:, :-2].reshape((-1,) + env.observation_space.shape)
 for x in X_raw:
     Xs_new.append(cv2.resize(x, (160, 160), interpolation=cv2.INTER_LINEAR)[None])
 X_new = np.concatenate(Xs_new, axis=0)
