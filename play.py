@@ -1,25 +1,42 @@
 import gym
 import numpy as np
 import cv2
-from a3c import a3c_model
+from featurization.a3c import a3c_model
 import time
+import sys
+import os
+
 
 N = 1000
+# parse cli
+arguments = sys.argv
+model_id = '1000_prelu'
+env_id = 'SpaceInvaders-v0'
+if len(arguments) > 1:
+    model_id = arguments[1]
+if len(arguments) > 2:
+    env_id = arguments[2]
+
+
+# check where model is
+tfmodel_path = '/data/alvin/models/%s.tfmodel' % env_id
+npy_path = '/data/alvin/models/%s.npy' % env_id
+load_path = tfmodel_path if os.path.exists(tfmodel_path) else npy_path
+
+env = gym.make(env_id)
 
 
 def _process_frame84(frame):
-    img = np.reshape(frame, [210, 160, 3]).astype(np.float32)
+    img = np.reshape(frame, env.observation_space.shape).astype(np.float32)
     resized = cv2.resize(img, (84, 84), interpolation=cv2.INTER_LINEAR)
     x_t = resized.astype(np.uint8)
     return x_t
 
-model = a3c_model(load='/data/alvin/models/SpaceInvaders-v0.tfmodel', layer='prelu/output') #layer='fc0/output')
-env = gym.make('SpaceInvaders-v0')
-expert_model = a3c_model(load='/data/alvin/models/SpaceInvaders-v0.tfmodel')
 
-#model_id = '100_fc0'
-model_id = '100_prelu'
-ls_model = np.load('/data/alvin/lstsq/compute-84x84-SpaceInvaders-v0/w_%s.npy' % model_id)
+model = a3c_model(load=load_path, layer='prelu/output', num_actions=env.action_space.n)
+expert_model = a3c_model(load=load_path, num_actions=env.action_space.n)
+
+ls_model = np.load('/data/alvin/lstsq/compute-210x160-%s/w_%s.npy' % (env_id, model_id))
 
 
 def round(x):
@@ -30,7 +47,7 @@ obs_84 = []
 #states = []
 rewards = []
 all_corrects = []
-f = open('compute-84x84-SpaceInvaders-v0/eval_%s.txt' % model_id, 'w')
+f = open('compute-210x160-%s/eval_%s.txt' % (env_id, model_id), 'w')
 try:
   for i in range(N):
     last_obs = obs = env.reset()
