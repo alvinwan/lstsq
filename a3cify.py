@@ -50,7 +50,7 @@ for i in range(len(samples) - 3):
     if i % 1000 == 0:
         print(i)
 X = np.stack(fc0s)
-Y = samples[3:, -2]
+Y = raw[3:, -2]
 assert Y.shape[0] == X.shape[0]
 
 np.save('compute-210x160-%s/X_%d_prelu.npy' % (env_id, len(data)), X)
