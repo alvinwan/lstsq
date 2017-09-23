@@ -6,5 +6,5 @@ if [ "$#" -ne 1 ]; then
 fi
 
 source $ENV3 && \
-python play.py $1
+python collect.py $1
 #python /data/alvin/lstsq/train-atari.py --task play --load /data/alvin/models/$1.npy --env $1 --N_p=10000

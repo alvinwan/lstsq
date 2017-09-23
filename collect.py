@@ -1,11 +1,15 @@
 import gym
 import numpy as np
 import cv2
-from a3c import a3c_model
+from featurization.a3c import a3c_model
 import time
+import sys
 
 N = 1000
-
+env_id = 'SpaceInvaders-v0'
+if len(sys.argv) == 2:
+    env_id = sys.argv[1]
+print('environment id', env_id)
 
 def _process_frame84(frame):
     img = np.reshape(frame, [210, 160, 3]).astype(np.float32)
@@ -13,8 +17,8 @@ def _process_frame84(frame):
     x_t = resized.astype(np.uint8)
     return x_t
 
-model = a3c_model(load='/data/alvin/models/SpaceInvaders-v0.tfmodel')
-env = gym.make('SpaceInvaders-v0')
+model = a3c_model(load='/data/alvin/models/%s.npy' % env_id)
+env = gym.make(env_id)
 
 action = 0
 obs_84 = []
@@ -38,13 +42,13 @@ for i in range(N):
     time_id = str(time.time())[-5:]
     try:
         data = np.vstack(states).astype(np.uint8)
-        np.save('state-210x160-SpaceInvaders-v0/%s_%05d' % (time_id, episode_reward), data)
+        np.save('state-210x160-%s/%s_%d_%d' % (env_id, time_id, episode_reward, len(states)), data)
     except MemoryError:
         batch_size = 10000
         n, i = len(data), 0
         while n > 0:
             data = np.vstack(states[i*batch_size:(i+1)*batch_size]).astype(np.uint8)
-            np.save('state-210x160-SpaceInvaders-v0/%s_%05d_%d' % (time_id, episode_reward, i), data)
+            np.save('state-210x160-%s/%s_%d_%d_%d' % (env_id, time_id, episode_reward, len(states), i), data)
             i += 1
             n -= batch_size
     print('Reward:', episode_reward)
