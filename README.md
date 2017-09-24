@@ -9,14 +9,14 @@ Below, we use 1000 episodes to gauge performance for both the least squares mode
 
 ## A3C Featurizations
 
-The least squares agents below are trained using OLS. No regularization has been added.
+The least squares agents below are trained using OLS. No regularization has been added. The least squares agent scores anywhere from 60% to 117% of A3C's reward.
 
 | Game | # Fr | # Ep | Feat | Train Acc | Test Acc | Perf | A3C Perf |
 |------|------|------|------|-----------|----------|-------|-----------|
 | Alien-v0 | 3,520 | 1 | prelu | 90% | 29% | 676 | 3123 |
-| Alien-v0 | 564,794 | 30 | prelu | 81% | ~75% | ~2410 | 3123 |
-| Breakout-v0 | 15,394 | 1 | prelu | 80% | ~68% | ~538 | 727 |
-| Breakout-v0 | 712,054 | 30 | prelu | 77% | ~72% | ~622 | 727 |
+| Alien-v0 | 564,794 | 30 | prelu | 81% | 73% | 2194 | 3123 |
+| Breakout-v0 | 15,394 | 1 | prelu | 80% | 68% | 553 | 727 |
+| Breakout-v0 | 712,054 | 30 | prelu | 77% | 71% | 602 | 727 |
 | Centipede-v0 | 68,844 | 1 | prelu | 81% | 79% | 2723 | 2549 |
 | Centipede-v0 | 705,146 | 30 | prelu | 80% | 79% | 2846 | 2549 |
 | SpaceInvaders-v0 | 399,000 | 100 | fc5 | 65% | 42% | 824 | 4012 |
@@ -26,12 +26,16 @@ The least squares agents below are trained using OLS. No regularization has been
 
 ## Convolutional Featurizations
 
+Below are a number of different convolutional featurizations.
+
+Here, we use randomly-selected patches from the provided data.
+
 | Game | # Fr | # Ep | Feat | Train Acc | Test Acc | Perf | A3C Perf |
 |------|------|------|------|-----------|----------|------|----------|
 | Breakout-v0 | 15,394 | 1 | conv | 48% | -- | -- | 727 |
 | SpaceInvaders-v0 | 10,000 | 1 | conv | 29% | -- | -- | 4012 |
 
-### Hyperparameter Tuning for SpaceInvaders-v0
+### `conv_tf` Hyperparameter Tuning for SpaceInvaders-v0
 
 The following are training accuracies, using just one episode of SpaceInvaders-v0. `I` means that the matrix was ill-conditioned and non-invertible.
 
