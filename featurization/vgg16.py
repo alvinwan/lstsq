@@ -6,9 +6,12 @@ import tensorflow as tf
 import time
 
 VGG_MEAN = [103.939, 116.779, 123.68]
+LAYERS = ('conv1_1', 'conv1_2', 'pool1', 'conv2_1', 'conv2_2', 'pool2',
+          'conv3_1', 'conv3_2', 'conv3_3', 'pool3', 'conv4_1', 'conv4_2',
+          'conv4_3', 'pool4', 'conv5_1', 'conv5_2', 'conv5_3', 'pool5', 'fc6',
+          'fc7', 'fc8', 'prob')
 
-
-__all__ = ('vgg16',)
+__all__ = ('vgg16', 'vgg16_model')
 
 
 class Vgg16:
@@ -128,12 +131,20 @@ class Vgg16:
         return tf.constant(self.data_dict[name][0], name="weights")
 
 
-def vgg16(data):
+def vgg16_model(layer, batch_size=1):
+    """Create the vgg16 model for reuse."""
+    assert layer in LAYERS, 'Layer must be one of %s' % str(LAYERS)
+    sess = tf.Session()
+    images = tf.placeholder("float", [batch_size, 224, 224, 3])
+    vgg = Vgg16()
+    with tf.name_scope("content_vgg"):
+        vgg.build(images)
+    model = getattr(vgg, layer)
+    return lambda data: sess.run(model, feed_dict={images: data})
+
+
+def vgg16(data, layer='prob'):
     """Featurize using vgg16. TODO(Alvin): Allow access to any layer"""
     assert data.shape[1:] == (224, 224, 3), 'Need shape (n, 224, 224, 3)'
-    with tf.Session() as sess:
-        images = tf.placeholder("float", [data.shape[0], 224, 224, 3])
-        vgg = vgg16.Vgg16()
-        with tf.name_scope("content_vgg"):
-            vgg.build(images)
-        return sess.run(vgg.prob, feed_dict={images: data})
+    model = vgg16_model(layer, batch_size=data.shape[0])
+    return model(data)
