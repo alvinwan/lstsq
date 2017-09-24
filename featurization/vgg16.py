@@ -131,20 +131,20 @@ class Vgg16:
         return tf.constant(self.data_dict[name][0], name="weights")
 
 
-def vgg16_model(layer, batch_size=1):
+def vgg16_model(layer, batch_size=1, load_path=None):
     """Create the vgg16 model for reuse."""
     assert layer in LAYERS, 'Layer must be one of %s' % str(LAYERS)
     sess = tf.Session()
     images = tf.placeholder("float", [batch_size, 224, 224, 3])
-    vgg = Vgg16()
+    vgg = Vgg16(load_path)
     with tf.name_scope("content_vgg"):
         vgg.build(images)
     model = getattr(vgg, layer)
     return lambda data: sess.run(model, feed_dict={images: data})
 
 
-def vgg16(data, layer='prob'):
+def vgg16(data, layer='prob', load_path=None):
     """Featurize using vgg16. TODO(Alvin): Allow access to any layer"""
     assert data.shape[1:] == (224, 224, 3), 'Need shape (n, 224, 224, 3)'
-    model = vgg16_model(layer, batch_size=data.shape[0])
+    model = vgg16_model(layer, load_path=load_path, batch_size=data.shape[0])
     return model(data)
