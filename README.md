@@ -22,18 +22,22 @@ The least squares agents below are trained using OLS. No regularization has been
 | SpaceInvaders-v0 | 399,000 | 100 | fc5 | 65% | 42% | 824 | 4012 |
 | SpaceInvaders-v0 | 428,000 | 100 | prelu | 85% | 82% | 2495 | 4012 |
 
-*Note that the downsampling method matters. The A3C model was trained using `cv2.resize(... interpolation=cv2.INTER_LINEAR)`. Using `scipy.misc.imresize(... mode='nearest')` resulted in significantly worse performance for `Alien-v0`. With 500,680  samples (30 episodes) and a3c prelu featurization, the agent achieved 67% training, ~29% testing, and ~355 reward. These results are also included in the `results/` directory.
+*Note that the downsampling method matters. The A3C model was trained using `cv2.resize(... interpolation=cv2.INTER_LINEAR)`. Using `scipy.misc.imresize(... mode='nearest')` resulted in significantly worse performance for `Alien-v0`. With 500,680  samples (30 episodes) and a3c prelu featurization, the agent achieved 67% train, 29% test, and 335 reward. These results are also included in `results/Alien-v0_prelu_30.txt`.
 
 ## Convolutional Featurizations
 
 | Game | # Fr | # Ep | Feat | Train Acc | Test Acc | Perf | A3C Perf |
-|------|------|------|------|-----------|----------|-------|-----------|
+|------|------|------|------|-----------|----------|------|----------|
 | Breakout-v0 | 15,394 | 1 | conv | 48% | -- | -- | 727 |
 | SpaceInvaders-v0 | 10,000 | 1 | conv | 29% | -- | -- | 4012 |
 
 ### Hyperparameter Tuning for SpaceInvaders-v0
 
-Use just 1 episode and train accuracy as proxy:
-- defaults: 24.51%
-- `max`: 24.51%
-- `bias=5.0`: 
+The following are training accuracies, using just one episode of SpaceInvaders-v0. `I` means that the matrix was ill-conditioned and non-invertible.
+
+| Parameters | 1e-7 | 1e-5 | 1e-3 | 1e-1 | 1 | 1e1 | 1e2 | 1e3 | 1e5 |
+|------------|------|------|------|------|---|-----|-----|-----|-----|
+| Defaults | I | I | I | 24.54% | 24.54% | 24.54% | 24.51% | 24.06% | 29.54% |
+| max | I | I | I | 24.54% | 24.54% | 24.54% | 24.51% | 24.06% | 29.54% |
+| bias=5.0 | I | I | I | 28.98% | 28.98% | 28.97% | 28.93% | 28.94% | 29.45% |
+| bias=10.0 | I | I | I | 28.59% | 28.59% | 28.6% | 28.52% | 28.24% | 27.94% |
