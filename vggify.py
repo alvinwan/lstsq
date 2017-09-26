@@ -40,7 +40,6 @@ print('Total frames', len(samples))
 for i in range(len(samples) - 3):
     frame = samples[i].reshape((1, 224, 224, 3))
     fc0 = model(frame)
-    print(fc0.shape)
     fc0s.append(fc0)
     if i % 1000 == 0:
         print(i)
