@@ -9,6 +9,7 @@ import cv2
 # parse cli
 arguments = sys.argv
 
+LAYER = 'fc7'
 N = 100
 env_id = 'SpaceInvaders-v0'
 if len(arguments) > 1:
@@ -34,10 +35,10 @@ for frame in raw[:, :-2].reshape((-1,) + env.observation_space.shape):
 samples = np.concatenate(samples, axis=0)
 
 # pass all frames through vgg16
-model = vgg16_model(layer='fc8', load_path='/data/alvin/models/vgg16.npy')
+model = vgg16_model(layer=LAYER, load_path='/data/alvin/models/vgg16.npy')
 fc0s = []
 print('Total frames', len(samples))
-for i in range(len(samples) - 3):
+for i in range(len(samples)):
     frame = samples[i].reshape((1, 224, 224, 3))
     fc0 = model(frame)
     fc0s.append(fc0)
@@ -45,7 +46,9 @@ for i in range(len(samples) - 3):
         print(i)
 X = np.stack(fc0s)
 Y = raw[:, -2]
-assert Y.shape[0] == X.shape[0]
 
-np.save('compute-210x160-%s/X_%d_vgg_fc8.npy' % (env_id, len(data)), X)
-np.save('compute-210x160-%s/Y_%d_vgg_fc8.npy' % (env_id, len(data)), Y)
+X = X.reshape((X.shape[0], X.shape[-1]))
+np.save('compute-210x160-%s/X_%d_vgg_%s.npy' % (env_id, len(data), LAYER), X)
+np.save('compute-210x160-%s/Y_%d_vgg_%s.npy' % (env_id, len(data), LAYER), Y)
+
+assert Y.shape[0] == X.shape[0], (X.shape, Y.shape)

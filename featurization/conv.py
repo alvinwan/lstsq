@@ -29,11 +29,11 @@ def conv(
     return out
 
 
-def output_shape(n=90, batch_feature_size=64, num_feature_batches=8,
+def output_shape(shape, batch_feature_size=64, num_feature_batches=8,
     data_batch_size=100, patch_size=10, pool_size=150):
     """Use to test and verify output shape."""
 
-    data = np.random.normal(0.0, 10.0, size=(n, 84, 84, 3))
+    data = np.random.normal(0.0, 10.0, size=shape)
     data = np.transpose(data, axes=(0, 3, 1, 2))
     print(data.shape)
 
