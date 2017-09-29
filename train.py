@@ -29,10 +29,17 @@ regs = (1e-7, 1e-5, 1e-3, 1e-1, 1, 1e1, 1e2, 1e3, 1e5)
 I = np.eye(X.shape[1])
 results = []
 for reg in regs:
-    w = solve(X.T.dot(X) + reg*I, X.T.dot(Y_oh))
-    acc = accuracy_score(np.argmax(X.dot(w), axis=1), Y)
+    try:
+        w = solve(X.T.dot(X) + reg*I, X.T.dot(Y_oh))
+        acc = accuracy_score(np.argmax(X.dot(w), axis=1), Y)
+    except np.linalg.linalg.LinAlgError:
+        w = None
+        acc = 0
     print('Regularization:', reg, '// Accuracy:', acc)
     results.append((w, acc))
 w, acc = max(results, key=lambda t: t[1])
 np.save('compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
-print(acc)
+print('Best accuracy:', acc, '(saving model...')
+
+print(' & '.join(regs))
+print(' | '.join([acc for w, acc in results]))
