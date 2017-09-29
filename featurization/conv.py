@@ -35,13 +35,11 @@ def output_shape(shape, batch_feature_size=64, num_feature_batches=8,
 
     data = np.random.normal(0.0, 10.0, size=shape)
     data = np.transpose(data, axes=(0, 3, 1, 2))
-    print(data.shape)
 
-    out_shape = conv_compute_output_shape(
+    return conv_compute_output_shape(
         data,
         batch_feature_size,
         num_feature_batches,
         data_batch_size,
         patch_size=patch_size,
         pool_size=pool_size)
-    print(out_shape)

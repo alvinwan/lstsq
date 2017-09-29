@@ -20,13 +20,19 @@ env = gym.make(env_id)
 X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))
 Y = np.load('compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
 
-X = X.reshape((X.shape[0], X.shape[-1]))
+X = X.reshape((X.shape[0], -1))
 Y = Y.reshape((Y.shape[0], 1))
 
 Y_oh = np.eye(env.action_space.n)[np.ravel(Y).astype(int)]
 
-w = solve(X.T.dot(X), X.T.dot(Y_oh))
+regs = (1e-7, 1e-5, 1e-3, 1e-1, 1, 1e1, 1e2, 1e3, 1e5)
+I = np.eye(X.shape[1])
+results = []
+for reg in regs:
+    w = solve(X.T.dot(X) + reg*I, X.T.dot(Y_oh))
+    acc = accuracy_score(np.argmax(X.dot(w), axis=1), Y)
+    print('Regularization:', reg, '// Accuracy:', acc)
+    results.append((w, acc))
+w, acc = max(results, key=lambda t: t[1])
 np.save('compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
-
-accuracy = accuracy_score(np.argmax(X.dot(w), axis=1), Y)
-print(accuracy)
+print(acc)
