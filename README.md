@@ -3,7 +3,7 @@
 Featurizations (`featurizations/`):
 - `a3c.py` -- Standalone script, uses A3C nn to featurize, can output any layer from policy to conv.
 - `conv.py` -- Uses `conv_tf` to featurize, can use a number of filters including patches from original images
-- `vgg16.py` -- Standalone script, uses VGG16 nn to featurize, can output any layer from policy to conv. (TODO)
+- `vgg16.py` -- Standalone script, uses VGG16 nn to featurize, can output any layer from policy to conv.
 
 Below, we use 1000 episodes to gauge performance for both the least squares model and A3C. Statistics with a tilde ~ indicate the experiment is currently running.
 
@@ -26,13 +26,12 @@ The least squares agents below are trained using OLS. No regularization has been
 
 ## Convolutional Featurizations
 
-Below are a number of different convolutional featurizations.
-
-Here, we use randomly-selected patches from the provided data.
+Below are a number of different convolutional featurizations. Here, we use randomly-selected patches from the provided data.
 
 | Game | # Fr | # Ep | Feat | Train Acc | Test Acc | Perf | A3C Perf |
 |------|------|------|------|-----------|----------|------|----------|
 | Breakout-v0 | 15,394 | 1 | conv | 48% | -- | -- | 727 |
+| Breakout-v0 | 15,394 | 1 | vgg16 | 17% | -- | -- | 727 |
 | SpaceInvaders-v0 | 10,000 | 1 | conv | 29% | -- | -- | 4012 |
 
 ### `conv_tf` Hyperparameter Tuning for SpaceInvaders-v0
