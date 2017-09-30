@@ -5,7 +5,19 @@ Featurizations (`featurizations/`):
 - `conv.py` -- Uses `conv_tf` to featurize, can use a number of filters including patches from original images
 - `vgg16.py` -- Standalone script, uses VGG16 nn to featurize, can output any layer from policy to conv.
 
-Below, we use 1000 episodes to gauge performance for both the least squares model and A3C. Statistics with a tilde ~ indicate the experiment is currently running.
+Below, we use 1000 episodes to gauge performance for both the least squares model and A3C. Statistics with a tilde ~ indicate the experiment is currently running. For comparison, ridge regression on the raw pixels (downsampled, `84x84x3`) achieves the following:
+
+| Regularization | Train Acc |
+|----------------|-----------|
+| 1e-7 | 87.56% |
+| 1e-5 | 87.24% |
+| 1e-3 | 87.25% |
+| 1e-1 | 86.94% |
+| 1 | 87.05% |
+| 1e1 | 86.49% |
+| 1e2 | 86.75% |
+| 1e3 | 86.75% |
+| 1e5 | 79.48% |
 
 ## A3C Featurizations
 
