@@ -1,7 +1,7 @@
 from featurization.conv import output_shape
 
 shape = (1, 160, 160, 3)
-patch_sizes = tuple(range(2, 20, 2))
+patch_sizes = tuple(range(10, 30, 2))
 
 shapes = []
 for patch_size in patch_sizes:

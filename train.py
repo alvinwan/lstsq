@@ -5,6 +5,9 @@ from scipy.linalg import solve
 from sklearn.metrics import accuracy_score
 import sys
 import gym
+import warnings
+
+warnings.filterwarnings('ignore')
 
 # parse cli
 arguments = sys.argv
@@ -20,8 +23,10 @@ env = gym.make(env_id)
 X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))
 Y = np.load('compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
 
-X = X.reshape((X.shape[0], -1))
-Y = Y.reshape((Y.shape[0], 1))
+X = X.reshape((X.shape[0], -1)).astype(np.float32)
+Y = Y.reshape((Y.shape[0], 1)).astype(np.float32)
+
+print(X.shape, Y.shape, X.dtype, Y.dtype)
 
 Y_oh = np.eye(env.action_space.n)[np.ravel(Y).astype(int)]
 
@@ -39,7 +44,7 @@ for reg in regs:
     results.append((w, acc))
 w, acc = max(results, key=lambda t: t[1])
 np.save('compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
-print('Best accuracy:', acc, '(saving model...')
+print('Best accuracy:', acc, '(saving model...)')
 
-print(' & '.join(regs))
-print(' | '.join([acc for w, acc in results]))
+print(' & '.join(map(str, regs)))
+print((' | '.join([str(acc * 100) + '%' for w, acc in results])).replace('0% ', 'I '))
