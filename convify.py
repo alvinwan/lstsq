@@ -10,7 +10,7 @@ arguments = sys.argv
 N = 100
 env_id = 'SpaceInvaders-v0'
 patch_size = 10
-pool_size = 138
+pool_size = 106
 if len(arguments) > 1:
     N = int(arguments[1])
 if len(arguments) > 2:
@@ -38,9 +38,9 @@ for x in X_raw:
     Xs_new.append(cv2.resize(x, (160, 160), interpolation=cv2.INTER_LINEAR)[None])
 X_new = np.concatenate(Xs_new, axis=0)
 X_new = np.transpose(X_new, axes=(0, 3, 1, 2))
-X = conv(X_new, patch_size=patch_size, pool_size=pool_size, num_feature_batches=32)
+X = conv(X_new, patch_size=patch_size, pool_size=pool_size)
 assert Y.shape[0] == X.shape[0]
 
-np.save('compute-210x160-%s/X_%d_conv_%d_%d_4096.npy' % (env_id, len(data), patch_size, pool_size), X)
-np.save('compute-210x160-%s/Y_%d_conv_%d_%d_4096.npy' % (env_id, len(data), patch_size, pool_size), Y)
+np.save('compute-210x160-%s/X_%d_conv_%d_%d.npy' % (env_id, len(data), patch_size, pool_size), X)
+np.save('compute-210x160-%s/Y_%d_conv_%d_%d.npy' % (env_id, len(data), patch_size, pool_size), Y)
 print('Finished: %d_conv_%d_%d' % (len(data), patch_size, pool_size))
