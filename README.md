@@ -75,4 +75,4 @@ The following are training accuracies, using just one episode of SpaceInvaders-v
 | patch=10,pool=138 | 2048x2x2 | I | I | I | 30.14% | 30.15% | 30.28% | 30.19% | 30.71% | 29.5% |
 | patch=10,pool=138 | 4096x2x2 | I | I | I | 29.89% | 29.89% | 29.87% | 29.86% | 29.49% | 25.93% |
 | patch=20,pool=128 | 2048x2x2 | I | I | I | 33.67% | 33.66% | 33.72% | 34.01% | 34.19% | 34.17% |
-| patch=20,pool=128 | 4096x2x2 | 
+| patch=20,pool=128 | 4096x2x2 | I | I | I | 36.07% | 36.07% | 36.09% | 35.28% | 33.82% | 34.4% |
