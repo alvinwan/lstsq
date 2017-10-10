@@ -10,7 +10,7 @@ from multiprocessing import Pool
 __all__ = ('blob', 'blob_multi', 'prost')
 
 
-def blob(frame, x_ways=7, y_ways=8, bins_per_color=3, with_prost=False):
+def blob(frame, x_ways=8, y_ways=7, bins_per_color=3, with_prost=False):
     """Blob features for a single sample.
 
     :param frame: a single frame, hxwx3
@@ -20,31 +20,38 @@ def blob(frame, x_ways=7, y_ways=8, bins_per_color=3, with_prost=False):
     :param with_prost: Add prost features
     :return: h2xw2x3 where h2=h/y_ways, w2=w/x_ways
     """
-    features = []
+    all_features = []
     h, w = frame.shape[1: 3]
     bin_size = int(np.floor(255. / bins_per_color))
-    nh, nw = int(np.ceil(h / 7)), int(np.ceil(w / 8))
+    nh, nw = int(np.ceil(h / y_ways)), int(np.ceil(w / x_ways))
 
     all_blobs = []
     for channel in range(frame.shape[2]):  # each channel for samples
       state = frame[:, :, channel]
       for bin_idx in range(bins_per_color):  # split each channel into multiple bins, evenly
         start, end = bin_idx * bin_size, (bin_idx + 1) * bin_size
-        features, blobs = canny_blob(state[(state > start) * (state < end)], True)  # only look at values in this bin
+        print(state.shape)
+        binned_state = np.zeros(state.shape)
+        idxs = np.where(np.logical_and((state >= start), (state < end)))
+        binned_state[idxs] = state[idxs]
+
+        features, blobs = canny_blob(binned_state, x_ways=x_ways, y_ways=y_ways,  with_blobs=True)  # only look at values in this bin
         color = np.array([[channel * bins_per_color + bin_idx] * blobs.shape[0]]).T
         all_blobs.append(np.hstack((blobs, color)))
-        features.append(features)
+        all_features.append(features)
 
     if with_prost:
         all_blobs = np.vstack(all_blobs)  # grab blob xs, ys
         features.append(prost(all_blobs))
-    return np.hstack(features)
+    return np.hstack(all_features)
 
 
-def canny_blob(state, with_blobs=False):
+def canny_blob(state, x_ways, y_ways, with_blobs=False):
     """Run blob detection on canny edges. Optionally compute pairwise distances."""
     edges = canny(state)
+    h, w = state.shape[0], state.shape[1]
     blobs = blob_dog(edges, max_sigma=5, threshold=0.2)
+    nh, nw = int(np.ceil(h / y_ways)), int(np.ceil(w / x_ways))
     y, x, r = blobs[:, 0] // y_ways, blobs[:, 1] // x_ways, blobs[:, 2] * np.sqrt(2)  # downsize blobs
     y, x = y.astype(int), x.astype(int)
     featurized = np.zeros((nh, nw))
