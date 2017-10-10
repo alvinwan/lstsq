@@ -10,7 +10,7 @@ from multiprocessing import Pool
 __all__ = ('blob', 'blob_multi', 'prost')
 
 
-def blob(frame, x_ways=8, y_ways=7, bins_per_color=3, with_prost=False):
+def blob(frame, x_ways=8, y_ways=7, bins_per_color=1, with_prost=True):
     """Blob features for a single sample.
 
     :param frame: a single frame, hxwx3
@@ -30,19 +30,18 @@ def blob(frame, x_ways=8, y_ways=7, bins_per_color=3, with_prost=False):
       state = frame[:, :, channel]
       for bin_idx in range(bins_per_color):  # split each channel into multiple bins, evenly
         start, end = bin_idx * bin_size, (bin_idx + 1) * bin_size
-        print(state.shape)
         binned_state = np.zeros(state.shape)
         idxs = np.where(np.logical_and((state >= start), (state < end)))
         binned_state[idxs] = state[idxs]
 
         features, blobs = canny_blob(binned_state, x_ways=x_ways, y_ways=y_ways,  with_blobs=True)  # only look at values in this bin
         color = np.array([[channel * bins_per_color + bin_idx] * blobs.shape[0]]).T
-        all_blobs.append(np.hstack((blobs, color)))
+        all_blobs.append(np.hstack((blobs[:, :2], color)))
         all_features.append(features)
 
     if with_prost:
         all_blobs = np.vstack(all_blobs)  # grab blob xs, ys
-        features.append(prost(all_blobs))
+        all_features.append(prost(all_blobs.astype(np.uint8), bins_per_color=bins_per_color))
     return np.hstack(all_features)
 
 
@@ -57,27 +56,27 @@ def canny_blob(state, x_ways, y_ways, with_blobs=False):
     featurized = np.zeros((nh, nw))
     featurized[y, x] = r  # fill in lower-dimensional representation
     if with_blobs:
-        return featurized.ravel(), blobs
+        return featurized.ravel(), np.vstack((y, x)).T
     return featurized.ravel()
 
 
-def blob_multi(raw):
+def blob_multi(raw, n=48):
     """Blob features for a set of samples.
 
     :param raw: nxhxwx3, for n samples, axb images and 3 color channels
     :return: nxh2xw2x3, where h2 = h/7, w2 = w/8
     """
-    p = Pool(48)
+    p = Pool(n)
     results = p.map(blob, raw)
     return np.vstack(results)
 
 
-def prost(all_blobs):
+def prost(all_blobs, bins_per_color=3):
     """Find all pairwise offset distances
 
     :param all_blobs: blobs in a frame, nx3
     """
-    features = np.zeros((30,20,3,30,20,3))
+    features = np.zeros((30,20,bins_per_color * 3,30,20,bins_per_color * 3))
     norms = np.linalg.norm(all_blobs, axis=1)[:, np.newaxis]
     D = norms + -2*all_blobs.dot(all_blobs.T) + norms.T
     for i, row in enumerate(D):
@@ -90,11 +89,11 @@ def prost(all_blobs):
 
 if __name__ == '__main__':
   for i, path in enumerate(glob.iglob('../state-210x160-SpaceInvaders-v0/*.npy')):
-    new_path = os.path.basename(path)
+    new_path = os.path.join('blobprost', os.path.basename(path))
     if os.path.exists(new_path):
         continue
     start = time.time()
-    new = blob_multi(np.load(path)[::10, :-2].reshape((-1, 210, 160, 3)))
+    new = blob_multi(np.load(path)[::100, :-2].reshape((-1, 210, 160, 3)))
     new_data = np.vstack(new)
     np.save(new_path, new_data)
     print(i, time.time() - start, 'saved',  new_data.shape, 'to', new_path)
