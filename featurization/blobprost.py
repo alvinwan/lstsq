@@ -93,7 +93,8 @@ if __name__ == '__main__':
     if os.path.exists(new_path):
         continue
     start = time.time()
-    new = blob_multi(np.load(path)[::100, :-2].reshape((-1, 210, 160, 3)))
+    new = blob_multi(np.load(path)[::10, :-2].reshape((-1, 210, 160, 3)))
     new_data = np.vstack(new)
     np.save(new_path, new_data)
     print(i, time.time() - start, 'saved',  new_data.shape, 'to', new_path)
+
