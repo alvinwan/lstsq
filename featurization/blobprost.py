@@ -5,6 +5,8 @@ import os
 import numpy as np
 import glob
 from multiprocessing import Pool
+from scipy.sparse import csr_matrix
+import scipy.sparse
 
 
 __all__ = ('blob', 'blob_multi', 'prost')
@@ -42,7 +44,7 @@ def blob(frame, x_ways=8, y_ways=7, bins_per_color=1, with_prost=True):
     if with_prost:
         all_blobs = np.vstack(all_blobs)  # grab blob xs, ys
         all_features.append(prost(all_blobs.astype(np.uint8), bins_per_color=bins_per_color))
-    return np.hstack(all_features)
+    return scipy.sparse.hstack(all_features)
 
 
 def canny_blob(state, x_ways, y_ways, with_blobs=False):
@@ -56,8 +58,8 @@ def canny_blob(state, x_ways, y_ways, with_blobs=False):
     featurized = np.zeros((nh, nw))
     featurized[y, x] = r  # fill in lower-dimensional representation
     if with_blobs:
-        return featurized.ravel(), np.vstack((y, x)).T
-    return featurized.ravel()
+        return csr_matrix(featurized.ravel()), np.vstack((y, x)).T
+    return csr_matrix(featurized.ravel())
 
 
 def blob_multi(raw, n=48):
@@ -84,7 +86,7 @@ def prost(all_blobs, bins_per_color=3):
         for j, elem in enumerate(row):
             y2, x2, c2 = all_blobs[j]
             features[y1, x2, c1, y2, x2, c2] = elem
-    return features.ravel()
+    return csr_matrix(features.ravel())
 
 
 if __name__ == '__main__':
