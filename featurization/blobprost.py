@@ -14,7 +14,7 @@ import scipy.sparse
 __all__ = ('blob', 'blob_multi', 'prost')
 
 
-def blob(frame, x_ways=8, y_ways=7, bins_per_color=1, with_prost=True):
+def blob(frame, x_ways=8, y_ways=7, bins_per_color=40, with_prost=True):
     """Blob features for a single sample.
 
     :param frame: a single frame, hxwx3
@@ -72,12 +72,13 @@ def blob_multi(raw, n=48):
     """
     if n == 1:
         return np.array([blob(frame) for frame in raw])
+    print('Total of %d frames' % raw.shape[0])
     p = Pool(n)
     results = p.map(blob, raw)
     return vstack(results)
 
 
-def prost(all_blobs, bins_per_color=3, ww=10, wh=10):
+def prost(all_blobs, bins_per_color=3, ww=4, wh=4):
     """Find all pairwise offset distances
 
     :param all_blobs: blobs in a frame, nx3
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     if os.path.exists(new_path):
         continue
     start = time.time()
-    new = blob_multi(np.load(path)[::10, :-2].reshape((-1, 210, 160, 3)))
+    new = blob_multi(np.load(path)[::10, :-2].reshape((-1, 210, 160, 3))[:1000])
     new_data = vstack(new)
     np.save(new_path, new_data)
     print(i, time.time() - start, 'saved',  new_data.shape, 'to', new_path)
