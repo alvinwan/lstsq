@@ -14,7 +14,7 @@ import scipy.sparse
 __all__ = ('blob', 'blob_multi', 'prost')
 
 
-def blob(frame, x_ways=8, y_ways=7, bins_per_color=40, with_prost=True):
+def blob(frame, x_ways=8, y_ways=7, bins_per_color=20, with_prost=True):
     """Blob features for a single sample.
 
     :param frame: a single frame, hxwx3
@@ -75,7 +75,18 @@ def blob_multi(raw, n=48):
     print('Total of %d frames' % raw.shape[0])
     p = Pool(n)
     results = p.map(blob, raw)
-    return vstack(results)
+    stacked = []
+    for i in range(raw.shape[0]):
+        if i < 4:
+            result = list(results[:i+1])
+            while len(result) < 4:
+                result.insert(0, result[0])
+        else:
+            result = results[i-4:i]
+        result = csr_matrix(hstack(result))
+        stacked.append(result)
+    results = vstack(stacked)
+    return results
 
 
 def prost(all_blobs, bins_per_color=3, ww=4, wh=4):
