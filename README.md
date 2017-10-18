@@ -5,7 +5,11 @@ Featurizations (`featurizations/`):
 - `conv.py` -- Uses `conv_tf` to featurize, can use a number of filters including patches from original images
 - `vgg16.py` -- Standalone script, uses VGG16 nn to featurize, can output any layer from policy to conv.
 
-Below, we use 1000 episodes to gauge performance for both the least squares model and A3C. Statistics with a tilde ~ indicate the experiment is currently running. For comparison, ridge regression on the raw pixels (downsampled, `84x84x3`) achieves the following:
+Below, we use 1000 episodes to gauge performance for both the least squares model and A3C. Statistics with a tilde ~ indicate the experiment is currently running.
+
+## Raw States
+
+For comparison, ridge regression on the raw pixels (downsampled, `84x84x3`) achieves the following:
 
 | Regularization | Train Acc |
 |----------------|-----------|
@@ -77,13 +81,24 @@ The following are training accuracies, using just one episode of SpaceInvaders-v
 | patch=20,pool=128 | 2048x2x2 | I | I | I | 33.67% | 33.66% | 33.72% | 34.01% | 34.19% | 34.17% |
 | patch=20,pool=128 | 4096x2x2 | I | I | I | 36.07% | 36.07% | 36.09% | 35.28% | 33.82% | 34.4% |
 
-## BlobProst
+## BlobProst Featurizations
+
+Use a varying number of blob features, from 1.8k to 55k.
 
 ### Blob
 
-The below are all training accuracies.
+The below accuracies labelled by regularization values are train accuracies. 
 
-| n | episodes | parameters | d | 1e-7 | 1e-5 | 1e-3 | 1e-1 | 1 | 1e1 | 1e2 | 1e3 | 1e5 |
-|---|----------|------------|---|------|------|------|------|---|-----|-----|-----|-----|
-| 17873 | 22 | bpc=5 | 36k | 71.02% | 71.02% | 71.02% | 70.98% | 70.64% | 69.91% | 67.24% | 62.08% | 51.42% |
+| n | episodes | parameters | d | score | 1e-7 | 1e-5 | 1e-3 | 1e-1 | 1 | 1e1 | 1e2 | 1e3 | 1e5 |
+|---|----------|------------|---|-------|------|------|------|------|---|-----|-----|-----|-----|
+| ? | 100 | bpc=3 | 22k | ? | 
+| 17873 | 22 | bpc=5 | 36k | 199±135 | 71.02% | 71.02% | 71.02% | 70.98% | 70.64% | 69.91% | 67.24% | 62.08% | 51.42% |
+| 46317 | 54 | bpc=5 | 36k | 200±130 | 62.96% | 62.96% | 62.95% | 62.95% | 62.91% | 62.73% | 61.67% | 59.20% | 51.60% |
+| 58845 | 68 | bpc=5 | 36k | ? | 63.86% | 63.86% | 63.86% | 63.84% | 63.82% | 63.66% | 62.72% | 60.28% | ? |
+| ? | 100 | bpc=7 | 55.4k | ? | 
+
+The below are histograms of scores. Evaluation above (and in the graphs below) uses only 200 episodes.
+
+![download-4](https://user-images.githubusercontent.com/2068077/31703170-365abb36-b390-11e7-895a-84a823e52c8f.png)
+![download-5](https://user-images.githubusercontent.com/2068077/31703703-a04f6ae4-b392-11e7-9664-d3ce87025eec.png)
 
