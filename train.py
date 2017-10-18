@@ -21,10 +21,10 @@ if len(arguments) > 2:
 
 env = gym.make(env_id)
 
-X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))
+X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))[()]  # assuming X is sparse
 Y = np.load('compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
 
-X = X.reshape((X.shape[0], -1)).astype(np.float32)
+#X = X.reshape((X.shape[0], -1)).astype(np.float32)
 Y = Y.reshape((Y.shape[0], 1)).astype(np.float32)
 
 print(X.shape, Y.shape, X.dtype, Y.dtype)
@@ -33,10 +33,15 @@ Y_oh = np.eye(env.action_space.n)[np.ravel(Y).astype(int)]
 
 regs = (1e-7, 1e-5, 1e-3, 1e-1, 1, 1e1, 1e2, 1e3, 1e5)
 I = np.eye(X.shape[1])
+print('I initialized')
+XTX = X.T.dot(X)
+print('XTX initialized')
+XTY = X.T.dot(Y_oh)
+print('XTY initialiezd')
 results = []
 for reg in regs:
     try:
-        w = solve(X.T.dot(X) + reg*I, X.T.dot(Y_oh))
+        w = solve(XTX + reg*I, XTY)
         acc = accuracy_score(np.argmax(X.dot(w), axis=1), Y)
     except np.linalg.linalg.LinAlgError:
         w = None

@@ -12,9 +12,9 @@ import scipy.sparse
 
 
 __all__ = ('blob', 'blob_multi', 'prost')
+D = 3
 
-
-def blob(frame, x_ways=8, y_ways=7, bins_per_color=20, with_prost=True):
+def blob(frame, x_ways=8, y_ways=7, bins_per_color=D, with_prost=False):
     """Blob features for a single sample.
 
     :param frame: a single frame, hxwx3
@@ -114,7 +114,7 @@ def prost(all_blobs, bins_per_color=3, ww=4, wh=4):
 
 if __name__ == '__main__':
   for i, path in enumerate(glob.iglob('../state-210x160-SpaceInvaders-v0/*.npy')):
-    new_path = os.path.join('blobprost-small-window', os.path.basename(path))
+    new_path = os.path.join('blob%d' % D, os.path.basename(path))
     if os.path.exists(new_path):
         continue
     start = time.time()
@@ -122,4 +122,3 @@ if __name__ == '__main__':
     new_data = vstack(new)
     np.save(new_path, new_data)
     print(i, time.time() - start, 'saved',  new_data.shape, 'to', new_path)
-
