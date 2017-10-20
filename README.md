@@ -87,18 +87,21 @@ Use a varying number of blob features, from 1.8k to 55k.
 
 ### Blob
 
-The below accuracies labelled by regularization values are train accuracies. 
+The below accuracies labelled by regularization values are train accuracies. Each is trained with 100 episodes.
 
-| n | episodes | parameters | d | score | 1e-7 | 1e-5 | 1e-3 | 1e-1 | 1 | 1e1 | 1e2 | 1e3 | 1e5 |
+<!--| n | episodes | parameters | d | score | 1e-7 | 1e-5 | 1e-3 | 1e-1 | 1 | 1e1 | 1e2 | 1e3 | 1e5 |
 |---|----------|------------|---|-------|------|------|------|------|---|-----|-----|-----|-----|
-| ? | 100 | bpc=3,4xlag | 22k | ? | 
 | 18k | 22 | bpc=5,4xlag | 36k | 199±135 | 71.02% | 71.02% | 71.02% | 70.98% | 70.64% | 69.91% | 67.24% | 62.08% | 51.42% |
 | 46k | 54 | bpc=5,4xlag | 36k | 200±130 | 62.96% | 62.96% | 62.95% | 62.95% | 62.91% | 62.73% | 61.67% | 59.20% | 51.60% |
-| 59k | 68 | bpc=5,4xlag | 36k | ? | 63.86% | 63.86% | 63.86% | 63.84% | 63.82% | 63.66% | 62.72% | 60.28% | ? |
-| ? | 100 | bpc=7,4xlag | 55.4k | ? | 
+| 59k | 68 | bpc=5,4xlag | 36k | ? | 63.86% | 63.86% | 63.86% | 63.84% | 63.82% | 63.66% | 62.72% | 60.28% | ? |-->
+<!--| ? | 100 | bpc=3,4xlag | 22k | ? |
+| ? | 100 | bpc=7,4xlag | 55.4k | ? | -->
+
+<!--| parameters | d | score | 
+| bpc=20 | 36k | ? |
 
 The below are histograms of scores. Evaluation above (and in the graphs below) uses only 200 episodes.
 
-![download-4](https://user-images.githubusercontent.com/2068077/31703170-365abb36-b390-11e7-895a-84a823e52c8f.png)
-![download-5](https://user-images.githubusercontent.com/2068077/31703703-a04f6ae4-b392-11e7-9664-d3ce87025eec.png)
+<!--![download-4](https://user-images.githubusercontent.com/2068077/31703170-365abb36-b390-11e7-895a-84a823e52c8f.png)
+![download-5](https://user-images.githubusercontent.com/2068077/31703703-a04f6ae4-b392-11e7-9664-d3ce87025eec.png)-->
 
