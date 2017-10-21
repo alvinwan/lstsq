@@ -97,11 +97,18 @@ The below accuracies labelled by regularization values are train accuracies. Eac
 <!--| ? | 100 | bpc=3,4xlag | 22k | ? |
 | ? | 100 | bpc=7,4xlag | 55.4k | ? | -->
 
-<!--| parameters | d | score | 
-| bpc=20 | 36k | ? |
+| parameters | d | score | 
+|------------|---|-------|
+| bpc=20 | 36k | 141±81 |
+| bpc=5,4xlag | 36k | 200±130 |
+
 
 The below are histograms of scores. Evaluation above (and in the graphs below) uses only 200 episodes.
 
 <!--![download-4](https://user-images.githubusercontent.com/2068077/31703170-365abb36-b390-11e7-895a-84a823e52c8f.png)
 ![download-5](https://user-images.githubusercontent.com/2068077/31703703-a04f6ae4-b392-11e7-9664-d3ce87025eec.png)-->
+
+![download-5](https://user-images.githubusercontent.com/2068077/31703703-a04f6ae4-b392-11e7-9664-d3ce87025eec.png)
+![download-6](https://user-images.githubusercontent.com/2068077/31843831-f8cb42ec-b5a9-11e7-9c05-34189c300a8c.png)
+
 
