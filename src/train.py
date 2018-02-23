@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 # parse cli
 arguments = sys.argv
-model_id = '42570_canny'  # <featurization hyperparameter>_<featurization name>
+model_id = '39000_canny'  # <featurization hyperparameter>_<featurization name>
 env_id = 'Centipede-v0'
 if len(arguments) > 1:
     model_id = arguments[1]

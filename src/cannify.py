@@ -2,6 +2,7 @@ from featurization.canny import featurize_density
 import numpy as np
 import glob
 from multiprocessing import Pool
+from math import ceil
 
 src = '/data/alvin/lstsq/state-210x160-Centipede-v0/*999_*.npy'
 dest = '/data/alvin/lstsq/compute-210x160-Centipede-v0/%s_%s_canny%s.npy'
@@ -9,7 +10,7 @@ dest = '/data/alvin/lstsq/compute-210x160-Centipede-v0/%s_%s_canny%s.npy'
 B_list = []
 Y_list = []
 times = []
-batch_size = 10
+batch_size = 20
 num_threads = 100
 for path in glob.iglob(src):
     A_src = np.load(path)
@@ -18,7 +19,7 @@ for path in glob.iglob(src):
 
     p = Pool(num_threads)
     chunk_size = batch_size * num_threads
-    for i in range(A.shape[0] // chunk_size):
+    for i in range(int(ceil(A.shape[0] / chunk_size))):
         print(i * chunk_size)
         B_list.extend(p.map(featurize_density, A[i*chunk_size:(i+1)*chunk_size]))
 
