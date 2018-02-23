@@ -47,7 +47,7 @@ obs_84 = []
 #states = []
 rewards = []
 all_corrects = []
-f = open('compute-210x160-%s/eval_%s.txt' % (env_id, model_id), 'w')
+f = open('../compute-210x160-%s/eval_%s.txt' % (env_id, model_id), 'w')
 try:
   for i in range(N):
     last_obs = obs = env.reset()
