@@ -1,0 +1,88 @@
+# Generated on Sun May  7 02:10:04 2017
+# generate-ssh-config.py --user ubuntu
+# 
+
+Host hyperband_1
+    HostName 35.165.183.66
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_0
+    HostName 54.68.95.60
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_2
+    HostName 35.161.12.162
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_7
+    HostName 54.71.227.120
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_5
+    HostName 34.209.255.33
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_8
+    HostName 52.89.178.251
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_4
+    HostName 35.165.152.212
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_3
+    HostName 52.37.92.11
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_6
+    HostName 34.209.200.90
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_9
+    HostName 54.71.24.126
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_10
+    HostName 54.71.205.30
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
+Host hyperband_11
+    HostName 34.210.34.145
+    User ubuntu
+    IdentityFile ~/.ssh/endive.pem
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+
