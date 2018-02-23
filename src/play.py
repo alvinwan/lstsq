@@ -38,17 +38,18 @@ try:
     reward = episode_reward = 0
     corrects = []
     while True:
-        obs_84.append(featurize_density(obs))
+        # obs_84.append(featurize_density(obs).reshape((25, 16, 3)))
         if len(obs_84) < 4:
             continue
-        featurized_obs = np.concatenate(obs_84[-4:], axis=2)
-        action = model([[featurized_obs]])[0].dot(ls_model).argmax()
+        # featurized_obs = np.concatenate(obs_84[-4:], axis=2)
+        featurized_obs = featurize_density(obs)
+        action = featurized_obs.dot(ls_model).argmax()
         obs, reward, done, info = env.step(action)
         #state = np.hstack((np.ravel(last_obs), action, reward))
         episode_reward += reward
         #states.append(state)
         last_obs = obs
-        obs_84 = obs_84[-4:]
+        # obs_84 = obs_84[-4:]
         if done:
             break
     time_id = str(time.time())[-5:]
