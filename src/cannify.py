@@ -1,6 +1,8 @@
-from featurization.canny import featurize
+from featurization.canny import featurize_density
 import numpy as np
 import time
+import argparse
+
 
 
 src = '/data/alvin/lstsq/state-210x160-SpaceInvaders-v0/00235_01170_0.npy'
@@ -16,7 +18,7 @@ for i, a in enumerate(A):
     t0 = time.time()  # each iter takes 9ms
     if i % 100 == 0:
         print(i, np.mean(times))
-    B_list.append(featurize(a))
+    B_list.append(featurize_density(a))
     times.append(time.time() - t0)
 B = np.array(B_list)
 n = len(B)
