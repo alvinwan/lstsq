@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 # parse cli
 arguments = sys.argv
-model_id = '10000_canny'  # <num samples>_<featurization>
+model_id = '10000_canny'  # <featurization hyperparameter>_<featurization name>
 env_id = 'SpaceInvaders-v0'
 if len(arguments) > 1:
     model_id = arguments[1]

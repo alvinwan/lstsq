@@ -1,9 +1,6 @@
 from featurization.canny import featurize_density
 import numpy as np
 import time
-import argparse
-
-
 
 src = '/data/alvin/lstsq/state-210x160-SpaceInvaders-v0/00235_01170_0.npy'
 dest = '/data/alvin/lstsq/compute-210x160-SpaceInvaders-v0/%s_%s_canny%s.npy'
