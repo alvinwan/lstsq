@@ -3,7 +3,7 @@ import numpy as np
 import glob
 from multiprocessing import Pool
 
-src = '/data/alvin/lstsq/state-210x160-Centipede-v0/*999*.npy'
+src = '/data/alvin/lstsq/state-210x160-Centipede-v0/*999_*.npy'
 dest = '/data/alvin/lstsq/compute-210x160-Centipede-v0/%s_%s_canny%s.npy'
 
 B_list = []
