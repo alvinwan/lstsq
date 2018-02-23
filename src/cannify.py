@@ -22,6 +22,7 @@ for path in glob.iglob(src):
     for i in range(int(ceil(A.shape[0] / chunk_size))):
         print(i * chunk_size)
         B_list.extend(p.map(featurize_density, A[i*chunk_size:(i+1)*chunk_size]))
+    assert len(B_list) >= A.shape[0]
 
 B = np.array(B_list)
 Y = np.vstack(Y_list)

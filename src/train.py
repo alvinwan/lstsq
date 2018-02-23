@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 # parse cli
 arguments = sys.argv
-model_id = '39000_canny'  # <featurization hyperparameter>_<featurization name>
+model_id = '40422_canny'  # <featurization hyperparameter>_<featurization name>
 env_id = 'Centipede-v0'
 if len(arguments) > 1:
     model_id = arguments[1]
@@ -44,6 +44,7 @@ X_test = Y_test = None
 if os.path.exists(test_path):
     X_test = np.load('../compute-210x160-%s/X_%s_test.npy' % (env_id, model_id))
     Y_test = np.load('../compute-210x160-%s/Y_%s_test.npy' % (env_id, model_id))
+    print(X_test.shape, Y_test.shape, X_test.dtype, Y_test.dtype)
 
 results = []
 for reg in regs:
