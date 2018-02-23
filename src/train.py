@@ -21,8 +21,8 @@ if len(arguments) > 2:
 
 env = gym.make(env_id)
 
-X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))[()]  # assuming X is sparse
-Y = np.load('compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
+X = np.load('../compute-210x160-%s/X_%s.npy' % (env_id, model_id))[()]  # assuming X is sparse
+Y = np.load('../compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
 
 X = X.reshape((X.shape[0], -1)).astype(np.float32)
 Y = Y.reshape((Y.shape[0], 1)).astype(np.float32)
@@ -49,12 +49,12 @@ for reg in regs:
     print('Regularization:', reg, '// Accuracy:', acc)
     results.append((w, acc))
 w, acc = max(results, key=lambda t: t[1])
-np.save('compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
+np.save('../compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
 print('Best train accuracy:', acc, '(saving model...)')
 print(' & '.join(map(str, regs)))
 print((' | '.join([str(acc * 100) + '%' for w, acc in results])).replace('0% ', 'I '))
 
-test_path = 'compute-210x160-%s/X_%s_test.npy' % (env_id, model_id)
+test_path = '../compute-210x160-%s/X_%s_test.npy' % (env_id, model_id)
 if os.path.exists(test_path):
     X_test = np.load('compute-210x160-%s/X_%s_test.npy' % (env_id, model_id))
     Y_test = np.load('compute-210x160-%s/Y_%s_test.npy' % (env_id, model_id))
