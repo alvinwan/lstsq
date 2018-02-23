@@ -1,7 +1,7 @@
 from featurization.canny import featurize_density
 import numpy as np
-import time
 import glob
+from multiprocessing import Pool
 
 src = '/data/alvin/lstsq/state-210x160-Centipede-v0/*999*.npy'
 dest = '/data/alvin/lstsq/compute-210x160-Centipede-v0/%s_%s_canny%s.npy'
@@ -9,17 +9,18 @@ dest = '/data/alvin/lstsq/compute-210x160-Centipede-v0/%s_%s_canny%s.npy'
 B_list = []
 Y_list = []
 times = []
+batch_size = 10
+num_threads = 100
 for path in glob.iglob(src):
     A_src = np.load(path)
-    A = A_src[:,:-2].reshape((-1, 210, 160, 3))
+    A = A_src[:,:-2].reshape((-1, 250, 160, 3))
     Y_list.append(A_src[:,-2:-1])
 
-    for i, a in enumerate(A):
-        t0 = time.time()  # each iter takes 9ms
-        if i % 100 == 0:
-            print(i, np.mean(times))
-        B_list.append(featurize_density(a))
-        times.append(time.time() - t0)
+    p = Pool(num_threads)
+    chunk_size = batch_size * num_threads
+    for i in range(A.shape[0] // chunk_size):
+        print(i * chunk_size)
+        B_list.extend(p.map(featurize_density, A[i*chunk_size:(i+1)*chunk_size]))
 
 B = np.array(B_list)
 Y = np.vstack(Y_list)
