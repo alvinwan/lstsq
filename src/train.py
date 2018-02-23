@@ -56,7 +56,7 @@ print((' | '.join([str(acc * 100) + '%' for w, acc in results])).replace('0% ', 
 
 test_path = '../compute-210x160-%s/X_%s_test.npy' % (env_id, model_id)
 if os.path.exists(test_path):
-    X_test = np.load('compute-210x160-%s/X_%s_test.npy' % (env_id, model_id))
-    Y_test = np.load('compute-210x160-%s/Y_%s_test.npy' % (env_id, model_id))
+    X_test = np.load('../compute-210x160-%s/X_%s_test.npy' % (env_id, model_id))
+    Y_test = np.load('../compute-210x160-%s/Y_%s_test.npy' % (env_id, model_id))
     acc = accuracy_score(np.argmax(X_test.dot(w), axis=1), Y_test)
     print('Validation accuracy:', acc)
