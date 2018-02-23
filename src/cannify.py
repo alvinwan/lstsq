@@ -8,7 +8,7 @@ dest = '/data/alvin/lstsq/compute-210x160-SpaceInvaders-v0/%s_%s_canny%s.npy'
 
 A_src = np.load(src)
 A = A_src[:,:-2].reshape((-1, 210, 160, 3))
-Y = A_src[:,-1:]
+Y = A_src[:,-2:-1]
 
 B_list = []
 times = []
