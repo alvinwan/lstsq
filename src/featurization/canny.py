@@ -11,7 +11,8 @@ def featurize_density(state):
     final = np.zeros((n_rows, n_cols, 3))
 
     for c in range(state.shape[2]):
-        edges = feature.canny(state[:, :, c])
+        # edges = feature.canny(state[:, :, c])
+        edges = state[:,:,c]
         for i in range(n_cols):
             for j in range(n_rows):
                 cell = edges[j * c_height:(j + 1) * c_height,
