@@ -53,10 +53,10 @@ for reg in regs:
     except np.linalg.linalg.LinAlgError:
         w = None
         acc = 0
-    print('Regularization:', reg, '// Accuracy:', acc)
     test_acc = 0
     if X_test is not None:
         test_acc = accuracy_score(np.argmax(X_test.dot(w), axis=1), Y_test)
+    print('Regularization:', reg, '// Accuracy:', acc, '// Val Accuracy:', test_acc)
     results.append((w, acc, test_acc))
 
 if X_test is not None:
@@ -68,4 +68,4 @@ np.save('../compute-210x160-%s/w_%s.npy' % (env_id, model_id), w)
 print('Best train accuracy:', acc, '(saving model...)')
 print('Best val accuracy:', test_acc)
 print(' & '.join(map(str, regs)))
-print((' | '.join([str(acc * 100) + '%' for w, acc in results])).replace('0% ', 'I '))
+print((' | '.join([str(acc * 100) + '%' for w, acc, _ in results])).replace('0% ', 'I '))
