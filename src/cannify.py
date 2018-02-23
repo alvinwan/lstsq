@@ -24,5 +24,5 @@ n_train = int(n * 0.9)
 
 np.save(dest % ('X', str(n), ''), B[:n_train])
 np.save(dest % ('Y', str(n), ''), Y[:n_train])
-np.save(dest % ('X', str(n), 'test'), B[n_train:])
-np.save(dest % ('X', str(n), 'test'), Y[n_train:])
+np.save(dest % ('X', str(n), '_test'), B[n_train:])
+np.save(dest % ('Y', str(n), '_test'), Y[n_train:])
