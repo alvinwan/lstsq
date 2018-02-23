@@ -4,11 +4,11 @@ import time
 
 
 src = '/data/alvin/lstsq/state-210x160-SpaceInvaders-v0/00235_01170_0.npy'
-dest = '/data/alvin/lstsq/compute-210x160-SpaceInvaders-v0/%s_%s_canny.npy'
+dest = '/data/alvin/lstsq/compute-210x160-SpaceInvaders-v0/%s_%s_canny%s.npy'
 
 A_src = np.load(src)
 A = A_src[:,:-2].reshape((-1, 210, 160, 3))
-Y = A_src[:,-2:]
+Y = A_src[:,-1:]
 
 B_list = []
 times = []
@@ -19,6 +19,10 @@ for i, a in enumerate(A):
     B_list.append(featurize(a))
     times.append(time.time() - t0)
 B = np.array(B_list)
+n = len(B)
+n_train = int(n * 0.9)
 
-np.save(dest % ('X', str(len(B))), B)
-np.save(dest % ('Y', str(len(Y))), Y)
+np.save(dest % ('X', str(n), ''), B[:n_train])
+np.save(dest % ('Y', str(n), ''), Y[:n_train])
+np.save(dest % ('X', str(n), 'test'), B[n_train:])
+np.save(dest % ('X', str(n), 'test'), Y[n_train:])
