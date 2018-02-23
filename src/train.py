@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 # parse cli
 arguments = sys.argv
-model_id = '1_conv'
+model_id = '10000_canny'  # <num samples>_<featurization>
 env_id = 'SpaceInvaders-v0'
 if len(arguments) > 1:
     model_id = arguments[1]
@@ -24,7 +24,7 @@ env = gym.make(env_id)
 X = np.load('compute-210x160-%s/X_%s.npy' % (env_id, model_id))[()]  # assuming X is sparse
 Y = np.load('compute-210x160-%s/Y_%s.npy' % (env_id, model_id))
 
-#X = X.reshape((X.shape[0], -1)).astype(np.float32)
+X = X.reshape((X.shape[0], -1)).astype(np.float32)
 Y = Y.reshape((Y.shape[0], 1)).astype(np.float32)
 
 print(X.shape, Y.shape, X.dtype, Y.dtype)
